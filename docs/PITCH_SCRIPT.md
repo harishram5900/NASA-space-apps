@@ -50,6 +50,7 @@
    > “Then we look from space. Crop greenness at its peak: NDVI 0.78, a healthy, dense canopy. Radar from NASA’s brand-new NISAR satellite. Soil moisture at three depths. Even the crop’s whole season, green-up to harvest.”
 5. **Compare & risk → click “2050s · high”**
    > “And here’s the decision. Corn-soybean looks safe today, but it uses the most fertilizer and loses the most soil. Jump to the 2050s with three NASA climate models: hot days almost triple. We don’t hide that uncertainty. We show it.”
+6. **🌐 Languages (5 seconds, tap the globe):** "And one more thing: it speaks the farmer’s language. One tap, and the whole site is in Hindi, Spanish, Swahili, or any of 130+ languages."
 
 ## 05 · THE DATA (Giri, 2:30–3:00) · Slide 5
 

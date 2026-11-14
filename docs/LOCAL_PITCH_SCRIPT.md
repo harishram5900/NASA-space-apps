@@ -37,7 +37,8 @@ Target 4:40 (20-second buffer). Slides are tagged with the judges' rubric: 01 Ho
 2. Right now: “Look at this season: the warmest 30 days on record for this field, and dry. So AgriHaven tells the farmer: drill your cover crop, don’t broadcast it.”
 3. Chapter 3: “And 2012. We never told the model about that drought. It found it by itself.”
 4. Satellite lab: “Then we look from space. Crop greenness at its peak: NDVI 0.78, a healthy, dense canopy. Radar from NASA’s brand-new NISAR satellite. Soil moisture at three depths. Even the crop’s whole season, green-up to harvest.”
-5. Compare & risk → 2050s · high: “And here’s the decision. Corn-soybean looks safe today, but it uses the most fertilizer and loses the most soil. Jump to the 2050s with three NASA climate models: hot days almost triple. We don’t hide that uncertainty. We show it.” Then: “Giri?”
+5. Compare & risk → 2050s · high: “And here’s the decision. Corn-soybean looks safe today, but it uses the most fertilizer and loses the most soil. Jump to the 2050s with three NASA climate models: hot days almost triple. We don’t hide that uncertainty. We show it.”
+6. **🌐 Languages (5 seconds, tap the globe):** "And one more thing: it speaks the farmer’s language. One tap, and the whole site is in Hindi, Spanish, Swahili, or any of 130+ languages." Then: “Giri?”
 
 **8 · Giri:** Everything you just saw comes from NASA. Two datasets drive every score: 35 years of daily NASA POWER data, and NEX-GDDP-CMIP6 climate projections from three models. Soil comes from SoilGrids.
 
