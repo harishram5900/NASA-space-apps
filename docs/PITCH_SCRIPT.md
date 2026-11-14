@@ -69,7 +69,7 @@
 > So why us? All four of us have spent time in our grandparents’ villages, watching them farm. We saw how much depends on one guess about the weather, and how often that guess is now wrong. So we did the research, and we built the tool we wish they’d had.
 
 **Giri (what’s next):**
-> Next, we want field-level satellite detail, a check against real harvest records, and to put this in front of Illinois farmers.
+> Next, we want to check AgriHaven against real harvest records with extension agents, and add more crops and regions.
 
 **Harish:**
 > Thank you. We’re AgriHaven.
