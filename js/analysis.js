@@ -28,7 +28,7 @@ export function parsePower(json, lat) {
       om: orig.getUTCMonth(), ra: extraterrestrialRadiation(lat, doy),
       tmax, tmin, prcp: Math.max(0, v('PRECTOTCORR') ?? 0), wet: v('GWETROOT'),
       sun: v('ALLSKY_SFC_SW_DWN'), rh: v('RH2M'), ws: v('WS2M'), ts: v('TS'),
-      wetTop: v('GWETTOP'), wetProf: v('GWETPROF'), dew: v('T2MDEW'), z: elev
+      wetTop: v('GWETTOP'), wetProf: v('GWETPROF'), dew: v('T2MDEW'), uv: v('ALLSKY_SFC_UV_INDEX'), z: elev
     });
   }
   return days;
@@ -94,6 +94,54 @@ export function applyScenario(days, dT = 0, rainPct = 0) {
   const f = 1 + rainPct / 100;
   return days.map((d) => ({ ...d, tmax: d.tmax + dT, tmin: d.tmin + dT, ts: d.ts == null ? null : d.ts + dT,
     dew: d.dew == null ? null : d.dew + dT, prcp: d.prcp * f }));
+}
+
+/**
+ * NWS heat index (°C) from air temperature (°C) and relative humidity (%),
+ * Rothfusz regression with the standard adjustments (NOAA/NWS).
+ */
+export function heatIndex(tC, rh) {
+  const T = tC * 9 / 5 + 32;
+  let hi = 0.5 * (T + 61 + (T - 68) * 1.2 + rh * 0.094);
+  if ((hi + T) / 2 >= 80) {
+    hi = -42.379 + 2.04901523 * T + 10.14333127 * rh - 0.22475541 * T * rh - 0.00683783 * T * T -
+      0.05481717 * rh * rh + 0.00122874 * T * T * rh + 0.00085282 * T * rh * rh - 0.00000199 * T * T * rh * rh;
+    if (rh < 13 && T >= 80 && T <= 112) hi -= ((13 - rh) / 4) * Math.sqrt((17 - Math.abs(T - 95)) / 17);
+    else if (rh > 85 && T >= 80 && T <= 87) hi += ((rh - 85) / 10) * ((87 - T) / 5);
+  }
+  return (hi - 32) * 5 / 9;
+}
+
+/** NWS heat-index category for people working outdoors. */
+export function heatCategory(hiC) {
+  if (hiC < 27) return { label: 'Optimal', level: 0 };
+  if (hiC < 32) return { label: 'Caution', level: 1 };
+  if (hiC < 39) return { label: 'Extreme caution', level: 2 };
+  if (hiC < 51) return { label: 'Danger', level: 3 };
+  return { label: 'Extreme danger', level: 4 };
+}
+
+// FAO-56 seasonal-average crop coefficients (Table 12, simplified)
+const KC = { corn: 0.85, soybean: 0.8, wheat: 0.75, springWheat: 0.75, oats: 0.75, sorghum: 0.75, sunflower: 0.8, pea: 0.8, canola: 0.8, alfalfa: 0.9 };
+
+/**
+ * Water Certainty Rate for one crop: share of seasons in which water supply
+ * (season rain + plant-available water stored at sowing) covered crop water
+ * demand (Kc × FAO-56 Penman-Monteith ET0 over the season).
+ */
+export function waterCertainty(cropKey, years, soil, yearList) {
+  const crop = CROPS[cropKey];
+  const awc = soil?.awc ?? 200;
+  const res = [];
+  for (const y of yearList) {
+    const days = seasonDays(years, y, crop.sow, crop.harvest, crop.winter);
+    if (!days || days.length < 60) continue;
+    const demand = (KC[cropKey] ?? 0.8) * sum(days.map(et0));
+    const startWet = days[0].wetProf ?? days[0].wet ?? 0.6;
+    const supply = sum(days.map((d) => d.prcp)) + (Math.max(0, startWet - 0.25) / 0.75) * awc;
+    res.push({ year: y, demand, supply, ok: supply >= demand });
+  }
+  return { rate: res.length ? (100 * res.filter((r) => r.ok).length) / res.length : null, seasons: res };
 }
 
 /** Group days by year; keep only complete years. */

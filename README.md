@@ -39,12 +39,37 @@ AgriHaven is a free web app. Click any field on Earth and it will:
 
 Satellite context layers from **NASA GIBS** (MODIS NDVI vegetation greenness, SMAP root-zone soil moisture, SEDAC croplands) show what's growing around the field right now.
 
+## Our brief, and where each part lives
+
+| Brief item | Where in AgriHaven | Data |
+|---|---|---|
+| **Mission: Compare rotations** | Rotation planner, ⚖️ Compare & risk (side-by-side table) | All |
+| **Mission: Reveal tradeoffs** | Tradeoff map (climate resilience vs soil health vs fertilizer), green/red best–worst table | Crop model, RUSLE, N budget |
+| **Mission: Understand risk** | Poor-season odds, worst season, Water Certainty Rate, 2012/2019 validation | NASA POWER |
+| **Mission: Make uncertainty visible** | 10–90 % outcome bars today vs 3 NASA climate models, rank ranges, p-values | NEX-GDDP-CMIP6 |
+| **Factor 1: Radar analysis** | 🛰️ Satellite lab card 2: latest pass, backscatter brightness, surface-roughness index | NASA-ISRO **NISAR** (L-band), NASA **OPERA** RTC (Sentinel-1 C-band) |
+| **Factor 2: Heat shifts** | Climate shift tab, heat-index trend, hot nights, degree-days | NASA POWER |
+| **Factor 3: Rainfall changes** | Season rain, spring downpours, dry spells, water balance; GPM IMERG map layer | NASA POWER, GPM |
+| **Factor 4: Water Certainty Rate** | Share of seasons where rain + stored soil water covered crop demand (Kc × FAO-56 Penman-Monteith ET₀) | NASA POWER, SoilGrids |
+| **Factor 5: Soil ↔ nutrients** | Soil N supply, C:N, CEC, pH nutrient-availability bars, N budget per rotation | SoilGrids |
+| **Research 1: Infrared 750–1400 nm + heat index** | MODIS bands 7-2-1 (band 2 = 841–876 nm NIR) image + NWS heat index with Optimal/Caution/Danger rating | MODIS, NASA POWER |
+| **Research 2: Radar backscatter** | As factor 1. X-band is commercial/European, so NASA's public L- and C-band radar is used and explained | NISAR, OPERA |
+| **Research 3: Vegetation index (NDVI) + density** | Live NDVI for the field, decoded from MODIS pixels, with High/Moderate/Low density | MODIS NDVI |
+| **Research 4: Thermal raster (temperature + moisture)** | MODIS land surface temperature (°C) + root-zone moisture (%) + SMAP m³/m³ | MODIS LST, SMAP, POWER |
+| **Research 5: NASA public observation data** | Every source listed with live status; request URLs in Data & method | All |
+| **Research 6: Soil moisture** | Surface / root zone / profile + SMAP + percentile vs 35 years | NASA POWER, SMAP |
+| **Research 7: Crop cycle in phases** | NDVI season curve with green-up / peak / senescence + corn & soybean stage calendar from heat units | MODIS, NASA POWER |
+| **Research 8: UV index** | CERES all-sky UV via NASA POWER, est. midday rating, 2001–present trend | NASA POWER (CERES) |
+
+Values like NDVI, temperature and moisture are **read live for each field** from NASA imagery: GIBS tiles are colorized with published colormaps, and AgriHaven converts each pixel's color back into the physical value.
+
 ## NASA data used
 
 | Dataset | Use |
 |---|---|
-| [NASA POWER](https://power.larc.nasa.gov/) Agroclimatology daily API (MERRA-2 / CERES / satellite) | 11 variables, 1991–2025 + near-real-time: T2M_MAX, T2M_MIN, T2MDEW, RH2M, WS2M, ALLSKY_SFC_SW_DWN, PRECTOTCORR, TS, GWETTOP, GWETROOT, GWETPROF |
-| NASA GIBS: MODIS NDVI, MODIS GPP, MODIS LST, MODIS land cover, SMAP L4, GPM IMERG, SEDAC croplands | Map layers and the NDVI season time-lapse |
+| [NASA POWER](https://power.larc.nasa.gov/) Agroclimatology daily API (MERRA-2 / CERES / satellite) | 12 variables, 1991–2025 + near-real-time: T2M_MAX, T2M_MIN, T2MDEW, RH2M, WS2M, ALLSKY_SFC_SW_DWN, ALLSKY_SFC_UV_INDEX, PRECTOTCORR, TS, GWETTOP, GWETROOT, GWETPROF |
+| NASA GIBS: MODIS NDVI, MODIS GPP, MODIS LST, MODIS 7-2-1 reflectance, MODIS land cover, SMAP L4, GPM IMERG, SEDAC croplands | Map layers, NDVI time-lapse, and per-field values decoded from pixels |
+| NASA-ISRO NISAR L2 GCOV (L-band radar), NASA JPL OPERA RTC-S1 (C-band radar) via GIBS | Radar backscatter and surface-roughness index |
 | [NASA NEX-GDDP-CMIP6](https://www.nccs.nasa.gov/services/data-collections/land-based-products/nex-gddp-cmip6) v2.0 (NASA Center for Climate Simulation) | Daily downscaled Tmax, Tmin and precipitation, 3 models × SSP2-4.5 / SSP5-8.5, turned into monthly change factors (`tools/`) |
 | [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/): MODIS Terra NDVI 8-day | Current crop greenness map layer |
 | NASA GIBS: SMAP L4 root-zone soil moisture | Current soil moisture map layer |
@@ -56,7 +81,7 @@ Satellite context layers from **NASA GIBS** (MODIS NDVI vegetation greenness, SM
 
 ## Validation
 
-The spring field-work-day indicator, calibrated only to USDA's typical average, independently finds **2019** (Illinois's record-wet, late-planting spring) with just 2 workable days and **2012** with 46. Without being tuned to any particular year, the model also ranks **2012**, the historic US drought, among the two worst corn seasons in central Illinois. It also flags **2005**, a severe Illinois drought. The FAO-56 radiation code reproduces FAO's own worked example, and July reference ET in central Illinois comes out at 5–6 mm/day, as expected. `npm test` runs 19 automated checks covering the statistics, unit conversions, climate-model deltas, impact maths and scoring logic.
+The spring field-work-day indicator, calibrated only to USDA's typical average, independently finds **2019** (Illinois's record-wet, late-planting spring) with just 2 workable days and **2012** with 46. Without being tuned to any particular year, the model also ranks **2012**, the historic US drought, among the two worst corn seasons in central Illinois. It also flags **2005**, a severe Illinois drought. The FAO-56 radiation code reproduces FAO's own worked example, and July reference ET in central Illinois comes out at 5–6 mm/day, as expected. `npm test` runs 23 automated checks covering the statistics, unit conversions, climate-model deltas, impact maths and scoring logic.
 
 ### Rebuilding the NASA projections
 ```bash

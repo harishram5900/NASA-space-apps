@@ -18,7 +18,7 @@ async function fetchJson(url, ms = 45000) {
   }
 }
 
-export const POWER_PARAMS = ['T2M_MAX', 'T2M_MIN', 'PRECTOTCORR', 'GWETROOT', 'ALLSKY_SFC_SW_DWN', 'RH2M', 'WS2M', 'TS', 'GWETTOP', 'GWETPROF', 'T2MDEW'];
+export const POWER_PARAMS = ['T2M_MAX', 'T2M_MIN', 'PRECTOTCORR', 'GWETROOT', 'ALLSKY_SFC_SW_DWN', 'RH2M', 'WS2M', 'TS', 'GWETTOP', 'GWETPROF', 'T2MDEW', 'ALLSKY_SFC_UV_INDEX'];
 
 export function powerUrl(lat, lon, startYear, endYear) {
   const q = new URLSearchParams({
@@ -196,7 +196,7 @@ export async function getRecent(lat, lon) {
   const now = new Date();
   const start = `${now.getUTCFullYear() - 1}0101`;
   const end = now.toISOString().slice(0, 10).replace(/-/g, '');
-  const q = new URLSearchParams({ parameters: 'T2M_MAX,T2M_MIN,PRECTOTCORR,GWETROOT', community: 'AG',
+  const q = new URLSearchParams({ parameters: 'T2M_MAX,T2M_MIN,PRECTOTCORR,GWETROOT,GWETTOP,GWETPROF,RH2M,ALLSKY_SFC_UV_INDEX', community: 'AG',
     latitude: lat.toFixed(4), longitude: lon.toFixed(4), start, end, format: 'JSON' });
   return fetchJson(`https://power.larc.nasa.gov/api/temporal/daily/point?${q}`, 45000);
 }

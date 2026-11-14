@@ -1,7 +1,10 @@
 import { CROPS } from './crops.js';
 import {
-  parsePower, applyScenario, applyMonthlyDeltas, byYear, climateIndicators, indicatorSummary, INDICATORS, linreg, GOOD
+  parsePower, applyScenario, applyMonthlyDeltas, byYear, climateIndicators, indicatorSummary, INDICATORS, linreg, GOOD,
+  heatIndex, heatCategory, waterCertainty, periods
 } from './analysis.js';
+import { loadColormaps, readPixel, firstValid, decode, datesBack, LAB_LAYERS, radarStats, densityClass, phenology, STAGES, stageDates } from './satlab.js';
+import { soilNutrients, nitrogenBudget } from './nutrients.js';
 import { loadProjections, nearestSite, SCENARIOS, seasonalSummary } from './projections.js';
 import { impact, N_FULL_LB } from './impact.js';
 import { ROTATIONS, scoreRotations, explain } from './rotations.js';
@@ -152,6 +155,8 @@ function showTab(tab) {
   document.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', x.dataset.tab === tab));
   document.querySelectorAll('.tabpane').forEach((p) => { p.hidden = p.id !== 'tab-' + tab; });
   if (tab === 'climate' && state.lastResult) drawChart();
+  if (tab === 'lab') renderLab();
+  if (tab === 'compare') renderCompare();
 }
 
 $('#themeBtn').onclick = () => {
@@ -245,6 +250,8 @@ const TOUR = [
   { sel: '#map', tab: 'rotations', title: 'Pick any field on Earth', text: 'Click the map, search a town or use a preset. AgriHaven downloads 35 years of daily NASA POWER weather and SoilGrids soil for that exact point. Toggle NASA satellite layers (MODIS greenness, SMAP soil moisture) to see current conditions.' },
   { sel: '#nowCard', tab: 'story', title: 'Right now on this field', text: 'Live NASA POWER data (about 3 days behind real time) compared with the same dates in every year since 1991, turned into timely advice: plant, wait, irrigate or seed a cover crop.' },
   { sel: '#story', tab: 'story', title: 'The field\'s climate story', text: 'Six chapters, generated from the data: the climate this farm was built for, the year everything went wrong, the new normal, the 2050s and a plan that holds. Switch to Spanish or have it read aloud.' },
+  { sel: '#lab', tab: 'lab', title: 'Satellite lab', text: 'Live readings for this exact field, decoded from NASA satellite pixels: near-infrared and heat index, NISAR and Sentinel-1 radar backscatter, NDVI and canopy density, thermal temperature and moisture, soil moisture at three depths, the crop cycle from space, UV index and soil nutrients.' },
+  { sel: '#compare', tab: 'compare', title: 'Compare, tradeoffs, risk and uncertainty', text: 'Pick up to three rotations to compare side by side, including Water Certainty Rate, nitrogen, erosion and carbon. See the tradeoff map, and how much outcomes swing today and under three NASA climate models.' },
   { sel: '#game', tab: 'game', title: 'Play the 2050s', text: 'The 2050 Farm Challenge: farm 8 seasons of 2050s weather (real NASA years warmed by NASA climate models), then compare your score and soil health with AgriHaven\'s plan on the same weather.' },
   { sel: '#headline', tab: 'rotations', title: 'The NASA story of this field', text: 'Plain-language facts: how much heat, frost-free season, downpours and hot days have changed since 1991, tested for statistical significance.' },
   { sel: '#impact', tab: 'rotations', title: 'What switching is worth', text: 'Fertilizer saved, dollars, greenhouse gas avoided and fewer bad seasons, compared with today\'s corn → soybean. Change the farm size and nitrogen price.' },
@@ -374,6 +381,8 @@ function render() {
   renderStory();
   renderNow();
   if (!game.g) renderGame();
+  if (state.tab === 'compare') renderCompare();
+  if (state.tab === 'lab') renderLab();
   if (state.tab === 'climate') drawChart();
 }
 
@@ -535,6 +544,334 @@ function renderGame() {
     <p class="small muted">Same ${SEASON_COUNT} seasons of 2050s weather for everyone (challenge #${g.seed}). Harvest points are a game simplification: the crop outcome score × a relative crop value × a soil-health bonus.</p>
     <button type="button" id="gameAgain">Play again</button></div>${log}`;
   $('#gameAgain').onclick = () => { game.g = null; renderGame(); };
+}
+
+// ---------------- Satellite lab (research data, read from NASA imagery) ----------------
+const lab = { key: null, busy: false, data: null };
+const pctFmt = (v) => (v == null ? '–' : `${Math.round(v * 100)}%`);
+const isoDay = (d) => d.toISOString().slice(0, 10);
+
+function waterRateFor(r, lr) {
+  const { recent } = periods([...lr.years.keys()]);
+  const crops = [...new Set(r.parsed.map((p) => p.crop))];
+  const rates = crops.map((k) => waterCertainty(k, lr.years, state.soil, recent).rate).filter((x) => x != null);
+  return rates.length ? rates.reduce((a, b) => a + b, 0) / rates.length : null;
+}
+
+function briefCard(lr) {
+  const S = (k) => lr.obsSummary.find((x) => x.key === k);
+  const r = lr.obsResult;
+  const top = r.scored[0], cs = r.scored.find((x) => x.id === 'cs');
+  const nut = soilNutrients(state.soil);
+  const rad = lab.data?.radar;
+  return `<div class="brief">
+    <div><h4>🎯 Mission</h4><ul>
+      <li><b>Compare rotations</b>: Rotation planner, Compare &amp; risk</li>
+      <li><b>Reveal tradeoffs</b>: tradeoff map in Compare &amp; risk</li>
+      <li><b>Understand risk</b>: poor-season odds, worst year, Water Certainty Rate</li>
+      <li><b>Make uncertainty visible</b>: 10–90 % ranges, 3 climate models</li></ul></div>
+    <div><h4>🌾 Factors that affect farming</h4><ul>
+      <li><b>Radar analysis</b>: ${rad ? `texture ${rad.texture.toFixed(2)} (${esc(rad.sensor)})` : 'see card 2'}</li>
+      <li><b>Heat shifts</b>: +${fmt(S('gdd').delta)} degree-days, hot nights ${fmt(S('hotNights').base, 1)} → ${fmt(S('hotNights').recent, 1)}</li>
+      <li><b>Rainfall changes</b>: ${fmt(S('gsRain').base)} → ${fmt(S('gsRain').recent)} mm/season, downpours ${fmt(S('springDeluge').base, 1)} → ${fmt(S('springDeluge').recent, 1)}</li>
+      <li><b>Water Certainty Rate</b>: ${fmt(waterRateFor(top, lr))}% (${esc(top.name.split(' → ')[0])}…) vs ${fmt(waterRateFor(cs, lr))}% (corn → soybean)</li>
+      <li><b>Soil ↔ nutrients</b>: ${nut ? `${fmt(nut.supplyLbAc)} lb N/ac/yr from soil, pH ${fmt(nut.ph, 1)} (${nut.phBand}), CEC ${nut.cecClass}` : 'needs soil data'}</li></ul></div>
+  </div>`;
+}
+
+async function renderLab() {
+  const el = $('#lab');
+  const lr = state.lastResult;
+  if (!lr) { el.innerHTML = ''; return; }
+  const key = `${state.lat},${state.lon}`;
+  if (lab.key === key && lab.data) { drawLab(); return; }
+  if (lab.busy && lab.key === key) return;
+  lab.key = key; lab.busy = true; lab.data = null;
+  el.innerHTML = `${briefCard(lr)}<p class="muted"><span class="spinner"></span>Reading NASA satellite imagery for this exact field (MODIS, SMAP, NISAR, Sentinel-1/OPERA)…</p>`;
+  const cm = await loadColormaps();
+  const { lat, lon } = state;
+  const today = new Date();
+  const peakY = today.getUTCMonth() >= 8 ? today.getUTCFullYear() : today.getUTCFullYear() - 1;
+  const peakEnd = new Date(Date.UTC(peakY, 7, 5));
+  const seasonDates = [];
+  for (let d = new Date(Date.UTC(peakY, 3, 1)); d <= new Date(Date.UTC(peakY, 9, 31)); d = new Date(d.getTime() + 16 * 86400000)) seasonDates.push(isoDay(d));
+  const [ndviNow, ndviSeason, nir, lst, smap, nisar, opera] = await Promise.all([
+    firstValid(LAB_LAYERS.ndvi, datesBack(today, 30, 2), lat, lon),
+    Promise.all(seasonDates.map((d) => readPixel(LAB_LAYERS.ndvi, d, lat, lon))),
+    firstValid(LAB_LAYERS.nir, datesBack(peakEnd, 20, 1), lat, lon),
+    firstValid(LAB_LAYERS.lst, datesBack(today, 24, 1), lat, lon),
+    firstValid(LAB_LAYERS.smap, datesBack(today, 8, 1), lat, lon),
+    firstValid(LAB_LAYERS.nisar, datesBack(today, 60, 1), lat, lon, { win: 6 }),
+    firstValid(LAB_LAYERS.opera, datesBack(today, 45, 1), lat, lon, { win: 6 })
+  ]);
+  if (lab.key !== key) return;
+  const series = seasonDates.map((d, i) => ({ date: d, v: ndviSeason[i] ? decode(cm.ndvi, ndviSeason[i].rgba) : null }));
+  const radarPx = nisar || opera;
+  lab.data = {
+    ndviNow: ndviNow && { ...ndviNow, v: decode(cm.ndvi, ndviNow.rgba) },
+    ndviPeak: ndviSeason.map((p, i) => p && { ...p, v: series[i].v }).filter(Boolean).sort((a, b) => b.v - a.v)[0] || null,
+    series, pheno: phenology(series), nir,
+    lst: lst && { ...lst, c: decode(cm.lst, lst.rgba) != null ? decode(cm.lst, lst.rgba) - 273.15 : null },
+    smap: smap && { ...smap, v: decode(cm.smap, smap.rgba) },
+    nisar: nisar && { ...nisar, ...radarStats(nisar) }, opera: opera && { ...opera, ...radarStats(opera) },
+    radar: radarPx ? { ...radarStats(radarPx), sensor: nisar ? 'NISAR L-band' : 'Sentinel-1 C-band' } : null,
+    peakY
+  };
+  lab.busy = false;
+  if (state.tab === 'lab') drawLab();
+}
+
+function drawLab() {
+  const lr = state.lastResult, D = lab.data;
+  if (!lr || !D) return;
+  const recent = state.recent ? parsePower(state.recent, state.lat).filter((d) => d.wet !== null) : [];
+  const last = recent[recent.length - 1];
+  const last30 = recent.slice(-30);
+  // heat index (using daily max temperature and mean humidity: an upper-end estimate)
+  const hiNow = last && last.rh != null ? heatIndex(last.tmax, last.rh) : null;
+  const obs = lr.obs;
+  const summerHI = (y0, y1) => {
+    const ys = obs.filter((d) => d.y >= y0 && d.y <= y1 && d.m >= 6 && d.m <= 8 && d.rh != null);
+    return ys.filter((d) => heatIndex(d.tmax, d.rh) >= 32).length / (y1 - y0 + 1);
+  };
+  const yrs = [...lr.years.keys()];
+  const yLast = Math.max(...yrs);
+  const hiBase = summerHI(yrs[0], yrs[0] + 14), hiRecent = summerHI(yLast - 14, yLast);
+  // UV
+  const uvMean = (arr) => { const v = arr.filter((d) => d.uv != null).map((d) => d.uv); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+  // NASA's CERES UV lags real time by a few months: use the latest 30 valid days available.
+  const uvRecent = recent.filter((d) => d.uv != null);
+  const uvSrc = uvRecent.length >= 10 ? uvRecent.slice(-30) : obs.filter((d) => d.uv != null).slice(-30);
+  const uvNow = uvMean(uvSrc);
+  const uvTo = uvSrc.length ? uvSrc[uvSrc.length - 1] : null;
+  const uvLabel = uvTo ? `30 days to ${uvTo.y}-${String(uvTo.m).padStart(2, '0')}-${String(uvTo.d).padStart(2, '0')}` : 'Last 30 days';
+  const uvSum = (y0, y1) => uvMean(obs.filter((d) => d.y >= y0 && d.y <= y1 && d.m >= 6 && d.m <= 8));
+  const uvA = uvSum(2001, 2010), uvB = uvSum(yLast - 9, yLast);
+  const uvCat = (u) => (u < 3 ? 'Low' : u < 6 ? 'Moderate' : u < 8 ? 'High' : u < 11 ? 'Very high' : 'Extreme');
+  const nut = soilNutrients(state.soil);
+  const chip = (t, cls = '') => `<span class="chip ${cls}">${esc(t)}</span>`;
+  const img = (p, alt) => (p ? `<img src="${p.thumb}" alt="${esc(alt)}">` : '<img alt="">');
+  const hc = hiNow != null ? heatCategory(hiNow) : null;
+  // stage dates for this year (current season data)
+  const sy = last?.y;
+  const yearDays = recent.filter((d) => d.y === sy);
+  const stagesCorn = yearDays.length ? stageDates(yearDays, [5, 1], STAGES.corn) : [];
+  const stagesSoy = yearDays.length ? stageDates(yearDays, [5, 15], STAGES.soybean) : [];
+  const fmtDate = (d) => (d ? new Date(d + 'T00:00:00Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' }) : '–');
+  const wetPct = (v) => (v == null ? '–' : `${Math.round(v * 100)}%`);
+  const n = state.recent && state.lastResult ? seasonNow(state.recent, state.lastResult.obs, state.lat) : null;
+  $('#lab').innerHTML = `${briefCard(lr)}
+  <div class="lab-grid">
+    <div class="labcard"><h3><span class="no">1</span> Infrared &amp; heat index</h3>
+      <div class="spec">Near-infrared 750–1400 nm · MODIS band 2 (841–876 nm) · NWS heat index</div>
+      <div class="row">${img(D.nir, 'MODIS 7-2-1 infrared composite')}
+        <div class="vals"><span>Heat index now <b>${hiNow != null ? fmt(hiNow, 1) + ' °C' : '–'}</b></span>
+          <span>${hc ? chip(hc.label, hc.level === 0 ? 'ok' : hc.level === 1 ? 'warn' : 'bad') : ''}</span>
+          <span class="small">Summer days at "Caution" or worse: ${fmt(hiBase, 1)} → <b style="font-size:1rem">${fmt(hiRecent, 1)}</b>/yr</span></div></div>
+      <p>Healthy leaves reflect strongly in near-infrared. In this MODIS bands 7-2-1 image (${esc(D.nir?.date || 'n/a')}, peak season), bright green = vigorous vegetation and pink/brown = bare soil. The heat index combines NASA POWER temperature and humidity to rate working conditions.</p>
+      <div class="src">NASA GIBS MODIS Terra Corrected Reflectance (Bands 7-2-1) · NASA POWER T2M_MAX + RH2M</div></div>
+
+    <div class="labcard"><h3><span class="no">2</span> Radar backscatter</h3>
+      <div class="spec">Synthetic-aperture radar: sees through clouds, day or night</div>
+      <div class="row">${img(D.nisar || D.opera, 'Radar image')}
+        <div class="vals">${D.radar ? `<span>Latest pass <b style="font-size:1rem">${esc((D.nisar || D.opera).date)}</b> · ${esc(D.radar.sensor)}</span>
+          <span>Backscatter brightness <b>${fmt(D.radar.brightness, 2)}</b></span>
+          <span>Surface roughness index <b>${fmt(D.radar.texture, 2)}</b></span>` : '<span class="muted">No radar pass over this field in the last 60 days.</span>'}</div></div>
+      <p>Radar brightness rises with surface roughness, crop structure and soil moisture. The roughness index is the speckle-texture (variation) of backscatter around the field, a relative 0–1 measure that separates smooth tilled soil from residue and standing crops. NASA's missions use <b>L-band</b> (NISAR, 24 cm waves, which pass through the canopy to the soil) and <b>C-band</b> (Sentinel-1, processed by NASA OPERA). <b>X-band</b> (3 cm) radar comes from commercial and European satellites and isn't in NASA's public archive, so AgriHaven uses NASA's L- and C-band instead.</p>
+      <div class="src">NASA-ISRO NISAR L2 GCOV · NASA JPL OPERA RTC-S1 (Sentinel-1) via GIBS${D.nisar && D.opera ? ` · Sentinel-1 roughness ${fmt(D.opera.texture, 2)}` : ''}</div></div>
+
+    <div class="labcard"><h3><span class="no">3</span> Vegetation index (NDVI)</h3>
+      <div class="spec">NDVI = (NIR − Red) / (NIR + Red), MODIS Terra 8-day</div>
+      <div class="row">${img(D.ndviPeak, 'NDVI at peak')}
+        <div class="vals"><span>Peak ${D.peakY} NDVI <b>${D.ndviPeak?.v != null ? '+' + fmt(D.ndviPeak.v, 2) : '–'}</b> ${D.ndviPeak?.v != null ? chip('Density: ' + densityClass(D.ndviPeak.v), 'ok') : ''}</span>
+          <span>Latest (${esc(D.ndviNow?.date || 'n/a')}) <b style="font-size:1rem">${D.ndviNow?.v != null ? '+' + fmt(D.ndviNow.v, 2) : '–'}</b> ${D.ndviNow?.v != null ? chip(densityClass(D.ndviNow.v)) : ''}</span></div></div>
+      <p>Values above +0.6 mean dense, healthy canopy (High density); 0.2–0.4 is sparse cover or bare soil. Read pixel-by-pixel from NASA imagery for this exact field.</p>
+      <div class="src">NASA GIBS MODIS_Terra_NDVI_8Day, decoded with the GIBS MODIS_NDVI colormap</div></div>
+
+    <div class="labcard"><h3><span class="no">4</span> Thermal raster</h3>
+      <div class="spec">Land surface temperature + moisture</div>
+      <div class="row">${img(D.lst, 'MODIS land surface temperature')}
+        <div class="vals"><span>Surface temperature <b>${D.lst?.c != null ? fmt(D.lst.c, 1) + ' °C' : '–'}</b> <span class="small muted">(${esc(D.lst?.date || 'cloudy')})</span></span>
+          <span>Root-zone moisture <b>${last ? wetPct(last.wet) : '–'}</b> <span class="small muted">of saturation (NASA POWER)</span></span>
+          <span>SMAP soil moisture <b style="font-size:1rem">${D.smap?.v != null ? fmt(D.smap.v, 3) + ' m³/m³' : '–'}</b></span></div></div>
+      <p>MODIS measures the ground's own thermal emission (10–12 µm). Hot, dry fields run warmer than moist, transpiring crops, so temperature and moisture together flag water stress.</p>
+      <div class="src">MODIS_Terra_Land_Surface_Temp_Day (colormap in kelvin) · SMAP L4 · NASA POWER GWETROOT</div></div>
+
+    <div class="labcard"><h3><span class="no">5</span> NASA public observation data</h3>
+      <div class="spec">Everything here is free and open</div>
+      <div class="vals small">
+        <span>${chip('✓', 'ok')} NASA POWER: 12 daily variables, ${yrs[0]}–${yLast} + near-real-time</span>
+        <span>${chip(state.site ? '✓' : '–', state.site ? 'ok' : '')} NASA NEX-GDDP-CMIP6: 3 climate models, 2050s</span>
+        <span>${chip(D.ndviNow || D.ndviPeak ? '✓' : '–', 'ok')} MODIS NDVI, GPP, LST, reflectance, land cover</span>
+        <span>${chip(D.smap ? '✓' : '–', D.smap ? 'ok' : '')} SMAP L4 soil moisture</span>
+        <span>${chip(D.nisar ? '✓' : '–', D.nisar ? 'ok' : '')} NISAR L-band radar ${chip(D.opera ? '✓' : '–', D.opera ? 'ok' : '')} OPERA Sentinel-1 radar</span>
+        <span>${chip('✓', 'ok')} GPM IMERG rainfall · SEDAC croplands</span>
+        <span>${chip(state.soil ? '✓' : '–', state.soil ? 'ok' : '')} ISRIC SoilGrids (partner data) to 1 m</span></div>
+      <div class="src">See Data &amp; method for every request URL</div></div>
+
+    <div class="labcard"><h3><span class="no">6</span> Soil moisture</h3>
+      <div class="spec">Three depths, NASA POWER (MERRA-2) + SMAP</div>
+      <div class="bars-mini">
+        ${[['Surface (0–5 cm)', last?.wetTop], ['Root zone (0–100 cm)', last?.wet], ['Full profile', last?.wetProf]].map(([l, v]) => `<span>${l}</span><div><div class="bar"><div style="width:${v != null ? v * 100 : 0}%;background:var(--brand)"></div></div><span class="small">${wetPct(v)} of saturation</span></div>`).join('')}
+      </div>
+      <p>${n ? `Root-zone wetness is at the <b>${n.wetPct}th percentile</b> for this date across ${n.nYears} years. ` : ''}Plant-available water in this soil's 1.2 m root zone: <b>${fmt(state.soil?.awc ?? 200)} mm</b>.</p>
+      <div class="src">NASA POWER GWETTOP / GWETROOT / GWETPROF (through ${esc(last ? `${last.y}-${String(last.m).padStart(2, '0')}-${String(last.d).padStart(2, '0')}` : 'n/a')}) · SMAP L4 · SoilGrids texture</div></div>
+
+    <div class="labcard" style="grid-column: 1 / -1"><h3><span class="no">7</span> Crop cycle in phases</h3>
+      <div class="spec">From space (MODIS NDVI ${D.peakY}) and from NASA heat units (${sy ?? ''} season)</div>
+      <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);gap:1rem" class="cyclegrid">
+        <div><div style="position:relative;height:190px"><canvas id="ndviChart" aria-label="NDVI through the season"></canvas></div>
+          ${D.pheno ? `<p>🌱 Green-up <b>${fmtDate(D.pheno.greenUp)}</b> · 🌿 Peak <b>${fmtDate(D.pheno.peak)}</b> (NDVI ${fmt(D.pheno.peakNdvi, 2)}) · 🍂 Senescence <b>${fmtDate(D.pheno.senescence)}</b></p>` : '<p class="muted">Not enough clear satellite views to trace the season.</p>'}</div>
+        <div><b>🌽 Corn</b> (planted May 1)<div class="stages">${stagesCorn.map((s2) => `<span>${esc(s2.stage)}<i>${fmtDate(s2.date)}</i></span>`).join('')}</div></div>
+        <div><b>🫘 Soybean</b> (planted May 15)<div class="stages">${stagesSoy.map((s2) => `<span>${esc(s2.stage)}<i>${fmtDate(s2.date)}</i></span>`).join('')}</div></div>
+      </div>
+      <div class="src">Phenology: 50 % NDVI-amplitude crossings · Stages: growing degree days (base 10 °C) from NASA POWER, thresholds from US extension guides</div></div>
+
+    <div class="labcard"><h3><span class="no">8</span> UV index</h3>
+      <div class="spec">CERES all-sky surface UV, via NASA POWER</div>
+      <div class="vals"><span>${uvLabel} (daily average) <b>${uvNow != null ? fmt(uvNow, 1) : '–'}</b></span>
+        <span>Typical midday estimate <b style="font-size:1rem">${uvNow != null ? fmt(uvNow * 2.5, 1) : '–'}</b> ${uvNow != null ? chip(uvCat(uvNow * 2.5), uvNow * 2.5 < 3 ? 'ok' : uvNow * 2.5 < 6 ? 'warn' : 'bad') : ''}</span>
+        <span class="small">Summer daily-average UV: ${fmt(uvA, 2)} (2001–10) → ${fmt(uvB, 2)} (${yLast - 9}–${String(yLast).slice(2)})</span></div>
+      <p>UV matters for farmworker safety (sunburn and heat stress during field work) and for crops, where strong UV-B can damage leaves. NASA reports a 24-hour average. The midday peak is roughly 2.5× that in summer (estimate).</p>
+      <div class="src">NASA POWER ALLSKY_SFC_UV_INDEX (CERES SYN1deg, 2001–present)</div></div>
+
+    <div class="labcard"><h3><span class="no">+</span> Soil ↔ nutrient relationship</h3>
+      <div class="spec">SoilGrids nitrogen, carbon, pH and CEC</div>
+      ${nut ? `<div class="vals"><span>Soil N released per year <b>${fmt(nut.supplyLbAc)} lb/ac</b></span>
+        <span class="small">Total N stock ${fmt(nut.nStockKgHa)} kg/ha (0–30 cm) · C:N ratio ${fmt(nut.cn, 1)} · CEC ${fmt(nut.cec, 0)} (${nut.cecClass} nutrient-holding)</span></div>
+      <div class="bars-mini">${Object.entries(nut.availability).map(([k, v]) => `<span>${esc(k)}</span><div class="bar"><div style="width:${v * 100}%;background:${v >= 0.9 ? 'var(--good)' : v >= 0.6 ? 'var(--mid)' : 'var(--bad)'}"></div></div>`).join('')}</div>
+      <p>At pH ${fmt(nut.ph, 1)} (${nut.phBand}), the bars show relative nutrient availability. A low C:N ratio (&lt; 12) means organic matter releases nitrogen quickly. Legumes and cover crops add to soil N; heavy rain and bare soil leach it.</p>` : '<p class="muted">No soil data for this point.</p>'}
+      <div class="src">ISRIC SoilGrids 2.0 · pH availability after Truog (1948) · mineralization ~1.2 %/yr</div></div>
+  </div>`;
+  // NDVI chart
+  const c = $('#ndviChart');
+  if (c) {
+    if (lab.chart) lab.chart.destroy();
+    const text = cssVar('--text'), grid = cssVar('--border');
+    lab.chart = new Chart(c, {
+      type: 'line',
+      data: { labels: D.series.map((p) => fmtDate(p.date)), datasets: [{ label: 'MODIS NDVI at this field', data: D.series.map((p) => p.v), borderColor: cssVar('--brand-2'), backgroundColor: cssVar('--brand-2') + '33', fill: true, spanGaps: true, tension: 0.35, pointRadius: 3 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: text } } },
+        scales: { y: { min: 0, max: 1, ticks: { color: text }, grid: { color: grid } }, x: { ticks: { color: text, maxRotation: 0, autoSkip: true }, grid: { display: false } } } }
+    });
+  }
+}
+
+// ---------------- Compare & risk (tradeoffs + uncertainty) ----------------
+const cmp = { ids: null, chart1: null, chart2: null, cacheKey: null, cache: null };
+const pctl = (arr, q) => { const a = [...arr].sort((x, y) => x - y); if (!a.length) return null; const i = (a.length - 1) * q; const lo = Math.floor(i), hi = Math.ceil(i); return a[lo] + (a[hi] - a[lo]) * (i - lo); };
+
+function yearlyScores(rot, rel, yearsList) {
+  return yearsList.map((y) => {
+    const v = rot.parsed.map((p) => rel[p.crop].results.find((r) => r.year === y)?.score).filter((x) => x != null);
+    return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+  }).filter((x) => x != null);
+}
+
+function renderCompare() {
+  const el = $('#compare');
+  const lr = state.lastResult;
+  if (!lr) { el.innerHTML = ''; return; }
+  const r = lr.obsResult;
+  const all = r.scored;
+  if (!cmp.ids || !cmp.ids.every((id) => all.some((x) => x.id === id))) {
+    const bestSoil = [...all].sort((a, b) => b.soil.score - a.soil.score)[0];
+    const bestClimate = [...all].sort((a, b) => b.climate - a.climate)[0];
+    cmp.ids = [...new Set([all[0].id, 'cs', bestSoil.id, bestClimate.id, all[1].id, all[2].id])].slice(0, 3);
+  }
+  const sel = cmp.ids.map((id) => all.find((x) => x.id === id)).filter(Boolean);
+  const { recent } = periods([...lr.years.keys()]);
+  const cons = r.cons || conservation(all, lr.years, state.soil);
+  const nut = soilNutrients(state.soil);
+  // 2050s per-model yearly scores for selected rotations (cached)
+  const site = state.site?.ssp245;
+  const ck = `${state.lat},${state.lon},${cmp.ids.join('|')},${state.soil?.awc}`;
+  if (cmp.cacheKey !== ck) {
+    cmp.cacheKey = ck;
+    cmp.cache = site ? Object.entries(site.models).map(([m, delta]) => {
+      const yrs = byYear(applyMonthlyDeltas(lr.obs, delta));
+      const res = scoreRotations(yrs, state.soil, lr.weights, sel);
+      return { model: m, res, yrsList: periods([...yrs.keys()]).recent };
+    }) : [];
+  }
+  const rows = sel.map((rot) => {
+    const ys = yearlyScores(rot, r.rel, recent);
+    const nb = nitrogenBudget(rot.steps, nut);
+    const fut = cmp.cache.map((m) => {
+      const fr = m.res.scored.find((x) => x.id === rot.id);
+      return { model: m.model, total: fr.total, ys: yearlyScores(fr, m.res.rel, m.yrsList) };
+    });
+    return { rot, ys, p10: pctl(ys, 0.1), p50: pctl(ys, 0.5), p90: pctl(ys, 0.9), nb, water: waterRateFor(rot, lr),
+      loss: cons.byId[rot.id]?.lossTAc, carbon: cons.byId[rot.id]?.carbonTHa, fut,
+      futRange: fut.length ? [Math.min(...fut.map((f) => f.total)), Math.max(...fut.map((f) => f.total))] : null };
+  });
+  const metric = (label, get, fmtv, better = 'high', unit = '') => {
+    const vals = rows.map(get);
+    const ok = vals.filter((v) => v != null);
+    const best = better === 'high' ? Math.max(...ok) : Math.min(...ok), worst = better === 'high' ? Math.min(...ok) : Math.max(...ok);
+    return `<tr><td>${label}</td>${vals.map((v) => `<td class="${ok.length > 1 && v === best ? 'best' : ok.length > 1 && v === worst ? 'worst' : ''}">${v == null ? '–' : fmtv(v) + unit}</td>`).join('')}</tr>`;
+  };
+  el.innerHTML = `<div class="card"><h2>⚖️ Compare rotations, reveal tradeoffs, understand risk</h2>
+    <p class="small muted">Pick up to 3 rotations. Green = best, red = worst in each row. Everything is computed for ${esc(state.name)} from NASA data.</p>
+    <div class="pick">${all.map((x) => `<label><input type="checkbox" data-cmp="${x.id}" ${cmp.ids.includes(x.id) ? 'checked' : ''}> ${esc(x.name)}</label>`).join('')}</div>
+    <div class="table-wrap"><table class="ctable">
+      <tr><th></th>${rows.map((x) => `<th>${esc(x.rot.name)}</th>`).join('')}</tr>
+      ${metric('<b>Overall score</b>', (x) => x.rot.total, (v) => fmt(v))}
+      ${metric('Climate resilience', (x) => x.rot.climate, (v) => fmt(v))}
+      ${metric('Soil health', (x) => x.rot.soil.score, (v) => fmt(v))}
+      ${metric('💧 Water Certainty Rate', (x) => x.water, (v) => fmt(v), 'high', '%')}
+      ${metric('Fertilizer N needed (lb/ac/yr)', (x) => x.nb.fertilizer, (v) => fmt(v), 'low')}
+      ${metric('Soil loss (t/ac/yr)', (x) => x.loss, (v) => fmt(v, 1), 'low')}
+      ${metric('Soil carbon gain (t C/ha/yr)', (x) => x.carbon, (v) => fmt(v, 2), 'high')}
+      ${metric('⚠️ Poor seasons (of 15)', (x) => x.rot.badYears.length, (v) => fmt(v), 'low')}
+      ${metric('Worst single crop-season', (x) => x.rot.worst, (v) => fmt(v), 'high')}
+      ${metric('Typical range (10th–90th pct)', (x) => x.p90 - x.p10, (v) => fmt(v), 'low', ' pts spread')}
+      ${site ? `<tr><td>🔭 2050s overall, range across 3 NASA models</td>${rows.map((x) => `<td>${x.futRange ? `${fmt(x.futRange[0])}–${fmt(x.futRange[1])}` : '–'}</td>`).join('')}</tr>` : ''}
+    </table></div></div>
+    <div class="card"><h3>🔀 Tradeoff map: climate resilience vs soil health</h3>
+      <p class="small muted">Up and to the right is better on both. Bubble size = fertilizer saved vs continuous corn. Selected rotations are highlighted. Rotations far apart on one axis but close on the other reveal the tradeoff you'd be making.</p>
+      <div class="chart-wrap"><canvas id="tradeChart" role="img" aria-label="Scatter of rotations by climate resilience and soil health"></canvas></div></div>
+    <div class="card"><h3>🎲 Uncertainty: how much do outcomes swing?</h3>
+      <p class="small muted">Each bar spans the 10th–90th percentile of season outcomes (8 in 10 seasons fall inside). Taller bars mean less predictable seasons. "Today" uses the real 2011–2025 NASA weather. The 2050s bars use the same weather warmed by each NASA climate model, so the gap between models is the climate-model uncertainty.</p>
+      <div class="chart-wrap"><canvas id="uncChart" role="img" aria-label="Range of season outcomes per rotation"></canvas></div>
+      <p class="small">${rows.map((x) => `<b>${esc(x.rot.name)}</b>: a poor season about ${x.rot.badYears.length ? `1 in ${Math.round(15 / x.rot.badYears.length)} years` : 'never in the last 15 years'}${x.futRange ? `; 2050s score ${fmt(x.futRange[0])}–${fmt(x.futRange[1])} depending on the model` : ''}.`).join('<br>')}</p></div>`;
+  el.querySelectorAll('[data-cmp]').forEach((cb) => {
+    cb.onchange = () => {
+      const id = cb.dataset.cmp;
+      if (cb.checked) cmp.ids = [...cmp.ids, id].slice(-3); else cmp.ids = cmp.ids.filter((x) => x !== id);
+      if (!cmp.ids.length) cmp.ids = [id];
+      renderCompare();
+    };
+  });
+  const text = cssVar('--text'), grid = cssVar('--border');
+  const palette = ['#2e9e5b', '#0b3d91', '#e0a526', '#d64933'];
+  if (cmp.chart1) cmp.chart1.destroy();
+  const base = all.find((x) => x.id === 'cc') || all[all.length - 1];
+  cmp.chart1 = new Chart($('#tradeChart'), {
+    type: 'bubble',
+    data: { datasets: all.map((x) => {
+      const i = cmp.ids.indexOf(x.id);
+      return { label: x.name, data: [{ x: x.climate, y: x.soil.score, r: 5 + Math.max(0, (base.nNeed - x.nNeed)) * 14 }],
+        backgroundColor: i >= 0 ? palette[i] + 'cc' : '#9aa59d55', borderColor: i >= 0 ? palette[i] : '#9aa59d' };
+    }) },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: climate ${fmt(c.raw.x)}, soil ${fmt(c.raw.y)}` } } },
+      scales: { x: { title: { display: true, text: 'Climate resilience →', color: text }, ticks: { color: text }, grid: { color: grid } },
+        y: { title: { display: true, text: 'Soil health →', color: text }, ticks: { color: text }, grid: { color: grid } } } }
+  });
+  if (cmp.chart2) cmp.chart2.destroy();
+  const groups = [{ label: 'Today (2011–2025 weather)', get: (x) => [x.p10, x.p90], med: (x) => x.p50, col: '#0b3d91' },
+    ...cmp.cache.map((m, mi) => ({ label: `2050s · ${m.model}`, get: (x) => { const f = x.fut[mi]; return [pctl(f.ys, 0.1), pctl(f.ys, 0.9)]; }, med: (x) => pctl(x.fut[mi].ys, 0.5), col: ['#e0a526', '#d64933', '#8e44ad'][mi] }))];
+  cmp.chart2 = new Chart($('#uncChart'), {
+    data: { labels: rows.map((x) => x.rot.name.length > 34 ? x.rot.name.slice(0, 32) + '…' : x.rot.name),
+      datasets: [
+        ...groups.map((g) => ({ type: 'bar', label: g.label, data: rows.map(g.get), backgroundColor: g.col + '88', borderColor: g.col, borderWidth: 1, borderSkipped: false }))
+      ] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: text } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmt(c.raw[0])}–${fmt(c.raw[1])}` } } },
+      scales: { y: { min: 0, max: 100, title: { display: true, text: 'Season outcome (0–100)', color: text }, ticks: { color: text }, grid: { color: grid } },
+        x: { ticks: { color: text }, grid: { display: false } } } }
+  });
 }
 
 // ---------------- sonification ----------------
@@ -790,6 +1127,7 @@ function renderMethod(rows) {
   </table>
   <p class="small muted">API calls for this field: <a href="${esc(state.powerUrl || '#')}" target="_blank" rel="noopener">NASA POWER request</a> · <a href="${esc(state.soilUrl || '#')}" target="_blank" rel="noopener">SoilGrids request</a></p>
 
+  <p class="small">Also used: NASA-ISRO <b>NISAR</b> L-band and NASA JPL <b>OPERA</b> Sentinel-1 C-band radar, MODIS bands 7-2-1 near-infrared reflectance, MODIS land surface temperature, SMAP L4 and CERES UV index (NASA POWER). Per-field values are read from GIBS tiles and converted back to physical units using GIBS's published colormaps.</p>
   <h3>Method</h3>
   <ol>
     <li><b>Climate shift.</b> For every year we compute 8 farm-relevant indicators from daily NASA data. We compare the first 15 years (baseline) with the most recent 15 and test each trend with the non-parametric <b>Mann-Kendall test</b> and <b>Sen's slope</b>, the standard methods for climate trend detection.</li>
@@ -797,6 +1135,9 @@ function renderMethod(rows) {
     <li><b>Rotation score.</b> Climate resilience blends the average crop outcome in recent years (65%) with the success rate of the rotation's <i>weakest</i> crop (35%), because a rotation is only as reliable as its weakest link. Any rotation containing a crop that meets its needs in under 10% of seasons is flagged ⛔ <i>not viable here</i> and heavily penalized. It is then penalized for years where the whole rotation struggled and for the worst single crop-year (tail risk). Soil health rewards plant-family diversity, mixing warm- and cool-season crops, legumes, living cover over winter, residue and perennials. Fertilizer need counts crop nitrogen demand minus legume credits. You set the weights.</li>
     <li><b>Farm-operations indicators.</b> Earliest planting day (5-day NASA soil-surface temperature ≥ 10°C and topsoil not saturated), spring field-work days (calibrated against USDA crop-progress norms, it picks out the record-wet 2019 spring), fungal-disease weather days (humidity ≥ 80% at 18–30°C) and hot nights.</li>
     <li><b>Soil conservation.</b> Erosion uses the USDA RUSLE equation: rainfall erosivity from NASA annual rain (Renard & Freimund 1994), soil erodibility from SoilGrids (EPIC K), crop cover factors from USDA Handbook 703, and a gently sloping field (LS 0.3). Soil-carbon gains use published rates: cover crops +0.32 t C/ha/yr (Poeplau & Don 2015) and ≥3-crop rotations +0.20 t C/ha/yr (West & Post 2002).</li>
+    <li><b>Water Certainty Rate.</b> The share of recent seasons in which season rain plus plant-available water stored at sowing covered crop water demand (FAO-56 crop coefficient × Penman-Monteith ET₀).</li>
+    <li><b>Nutrients.</b> Soil N supply = SoilGrids total N stock × ~1.2 %/yr mineralization. The fertilizer budget subtracts soil supply and legume credits from crop need and is calibrated to Illinois MRTN guidance. Nutrient availability by pH follows the Truog chart.</li>
+    <li><b>Heat index &amp; UV.</b> NWS Rothfusz heat index from NASA POWER temperature and humidity; UV from CERES via NASA POWER.</li>
     <li><b>Water.</b> Season water supply = rain + plant-available stored water (NASA GWETROOT × soil water capacity from SoilGrids texture). Evaporative demand is FAO-56 Penman-Monteith reference evapotranspiration, computed from NASA POWER radiation, humidity, wind and temperature.</li>
     <li><b>2050s.</b> NASA NEX-GDDP-CMIP6 monthly changes in Tmax, Tmin and rain from 3 climate models shift the real 35-year record (the standard "delta method"). We rank rotations under each model separately to show whether the recommendation is robust.</li>
   </ol>

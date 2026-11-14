@@ -95,6 +95,8 @@
       <nav class="tabs" role="tablist">
         <button role="tab" data-tab="story" aria-selected="true">📖 Field story</button>
         <button role="tab" data-tab="rotations">🔄 Rotation planner</button>
+        <button role="tab" data-tab="lab">🛰️ Satellite lab</button>
+        <button role="tab" data-tab="compare">⚖️ Compare &amp; risk</button>
         <button role="tab" data-tab="game">🎮 2050 Challenge</button>
         <button role="tab" data-tab="climate">📈 Climate shift</button>
         <button role="tab" data-tab="crops">🌾 Crop reliability</button>
@@ -120,6 +122,14 @@
           <div id="builder" class="builder-row"></div>
           <button id="addCustom">Score my rotation</button>
         </div>
+      </div>
+
+      <div class="tabpane" id="tab-lab" hidden>
+        <div id="lab" class="lab"></div>
+      </div>
+
+      <div class="tabpane" id="tab-compare" hidden>
+        <div id="compare" class="compare"></div>
       </div>
 
       <div class="tabpane" id="tab-game" hidden>

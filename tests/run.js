@@ -6,6 +6,9 @@ import { parsePower, byYear, climateIndicators, indicatorSummary, cropReliabilit
 import { impact } from '../js/impact.js';
 import { seasonNow } from '../js/now.js';
 import { erosivity, soilLoss } from '../js/conservation.js';
+import { heatIndex, heatCategory, waterCertainty, periods } from '../js/analysis.js';
+import { soilNutrients, nitrogenBudget } from '../js/nutrients.js';
+import { decode, tileFor, phenology, densityClass, stageDates, STAGES } from '../js/satlab.js';
 import { newGame, playSeason, autoPlay } from '../js/game.js';
 import { buildStory } from '../js/story.js';
 import { scoreRotations, soilHealth, nitrogenNeed } from '../js/rotations.js';
@@ -153,6 +156,39 @@ test('2050 game: continuous corn loses to a diverse rotation on the same weather
   for (let i = 0; i < 8; i++) playSeason(g, { crop: 'corn' }, soil);
   const diverse = autoPlay(years, g.seq, ['corn+rye', 'soybean+rye'], soil);
   assert.ok(diverse.points > g.points && diverse.soil > g.soil);
+});
+
+test('NWS heat index matches the official chart', () => {
+  assert.ok(Math.abs(heatIndex(35, 50) - 40.6) < 0.5); // 95°F, 50% -> 105°F
+  assert.equal(heatCategory(heatIndex(24.5, 68)).label, 'Optimal');
+});
+
+test('Water Certainty Rate flags the 2012 drought', () => {
+  const { recent } = periods([...years.keys()]);
+  const w = waterCertainty('corn', years, soil, recent);
+  assert.ok(w.rate > 50 && w.rate < 100);
+  assert.ok(w.seasons.find((s) => s.year === 2012).ok === false);
+});
+
+test('nitrogen budget matches Illinois guidance (continuous corn ~195 lb N/ac)', () => {
+  const nut = soilNutrients(soil);
+  assert.ok(nut.supplyLbAc > 60 && nut.supplyLbAc < 140);
+  const cc = nitrogenBudget(['corn'], nut).fertilizer, cs = nitrogenBudget(['corn', 'soybean'], nut).fertilizer;
+  assert.ok(cc > 170 && cc < 220, `cc ${cc}`);
+  assert.ok(cs * 2 > 130 && cs * 2 < 180, `corn year after soy ${cs * 2}`);
+});
+
+test('satellite pixel decoding, tiles and phenology', () => {
+  const cm = JSON.parse(fs.readFileSync(new URL('../data/gibs-colormaps.json', import.meta.url)));
+  assert.ok(Math.abs(decode(cm.ndvi, [46, 128, 0]) - 0.645) < 0.01); // verified against a real MODIS tile
+  assert.ok(Math.abs(decode(cm.smap, [59, 157, 0]) - 0.208) < 0.01);
+  const t = tileFor(40.2, -88.4, 9);
+  assert.deepEqual([t.x, t.y], [130, 193]);
+  assert.equal(densityClass(0.82), 'High');
+  const ph = phenology([0.2, 0.25, 0.5, 0.8, 0.85, 0.7, 0.4, 0.25].map((v, i) => ({ date: `2025-0${i + 3}-01`, v })));
+  assert.equal(ph.peak, '2025-07-01');
+  const st = stageDates(days.filter((d) => d.y === 2020), [5, 1], STAGES.corn);
+  assert.ok(st.find((s) => s.stage.startsWith('Silking')).date.startsWith('2020-07'));
 });
 
 console.log(`\n${passed} tests passed`);
