@@ -8,7 +8,7 @@ import { soilNutrients, nitrogenBudget } from './nutrients.js';
 import { loadProjections, nearestSite, SCENARIOS, seasonalSummary } from './projections.js';
 import { impact, N_FULL_LB } from './impact.js';
 import { ROTATIONS, scoreRotations, explain } from './rotations.js';
-import { getPower, getSoil, getSample, getRecent, geocode, reverseName, GIBS_LAYERS, gibsUrl, gibsDate, powerUrl, soilUrl } from './api.js';
+import { getPower, getSoil, getSample, getRecent, geocode, suggestPlaces, reverseName, GIBS_LAYERS, gibsUrl, gibsDate, powerUrl, soilUrl } from './api.js';
 import { seasonNow } from './now.js';
 import { conservation } from './conservation.js';
 import { newGame, playSeason, autoPlay, SEASON_COUNT } from './game.js';
@@ -113,30 +113,94 @@ for (const p of PRESETS) {
   $('#presets').appendChild(b);
 }
 
-// ---------------- search ----------------
+// ---------------- search (autocomplete) ----------------
+const ac = { items: [], active: -1, timer: null, ctl: null, q: '' };
+const searchInput = $('#searchInput'), resultsEl = $('#searchResults');
+searchInput.setAttribute('role', 'combobox');
+searchInput.setAttribute('aria-autocomplete', 'list');
+searchInput.setAttribute('aria-controls', 'searchResults');
+searchInput.setAttribute('aria-expanded', 'false');
+resultsEl.setAttribute('role', 'listbox');
+
+function presetMatches(q) {
+  const ql = q.toLowerCase();
+  return PRESETS.filter((p) => p.name.toLowerCase().includes(ql)).map((p) => ({ main: p.name, detail: 'AgriHaven preset', name: p.name, lat: p.lat, lon: p.lon, preset: true }));
+}
+function hl(text, q) {
+  const i = text.toLowerCase().indexOf(q.toLowerCase());
+  return i < 0 ? esc(text) : `${esc(text.slice(0, i))}<mark>${esc(text.slice(i, i + q.length))}</mark>${esc(text.slice(i + q.length))}`;
+}
+function showSuggestions(items, q, note) {
+  ac.items = items; ac.active = items.length ? 0 : -1;
+  resultsEl.hidden = false;
+  searchInput.setAttribute('aria-expanded', 'true');
+  resultsEl.innerHTML = items.length
+    ? items.map((r, i) => `<li role="option" id="ac-${i}" data-i="${i}" aria-selected="${i === ac.active}">
+        <span class="ac-ico" aria-hidden="true">${r.preset ? '⭐' : '📍'}</span><span><b>${hl(r.main, q)}</b><small>${esc(r.detail || '')}</small></span></li>`).join('')
+    : `<li class="ac-note">${esc(note || 'No places found. Try a town or county name, or click the map.')}</li>`;
+  if (ac.active >= 0) searchInput.setAttribute('aria-activedescendant', 'ac-0');
+}
+function closeSuggestions() {
+  resultsEl.hidden = true; ac.items = []; ac.active = -1;
+  searchInput.setAttribute('aria-expanded', 'false');
+  searchInput.removeAttribute('aria-activedescendant');
+}
+function chooseSuggestion(r) {
+  closeSuggestions();
+  searchInput.value = r.main;
+  searchInput.blur();
+  selectLocation(r.lat, r.lon, r.preset ? r.name : r.name);
+}
+function moveActive(d) {
+  if (!ac.items.length) return;
+  ac.active = (ac.active + d + ac.items.length) % ac.items.length;
+  resultsEl.querySelectorAll('[role=option]').forEach((li, i) => li.setAttribute('aria-selected', i === ac.active));
+  searchInput.setAttribute('aria-activedescendant', `ac-${ac.active}`);
+  resultsEl.querySelector(`#ac-${ac.active}`)?.scrollIntoView({ block: 'nearest' });
+}
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim();
+  ac.q = q;
+  clearTimeout(ac.timer);
+  if (q.length < 2) { closeSuggestions(); return; }
+  const local = presetMatches(q);
+  showSuggestions(local, q, 'Searching…');
+  ac.timer = setTimeout(async () => {
+    ac.ctl?.abort();
+    ac.ctl = new AbortController();
+    try {
+      const remote = await suggestPlaces(q, ac.ctl.signal);
+      if (ac.q !== q) return;
+      showSuggestions([...local, ...remote].slice(0, 7), q);
+    } catch (e) {
+      if (e.name !== 'AbortError' && ac.q === q) showSuggestions(local, q, 'Suggestions unavailable. Press Enter to search, or click the map.');
+    }
+  }, 220);
+});
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowDown') { e.preventDefault(); moveActive(1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); moveActive(-1); }
+  else if (e.key === 'Escape') { closeSuggestions(); }
+});
+resultsEl.addEventListener('mousedown', (e) => {
+  const li = e.target.closest('[data-i]');
+  if (!li) return;
+  e.preventDefault();
+  chooseSuggestion(ac.items[+li.dataset.i]);
+});
+searchInput.addEventListener('blur', () => setTimeout(closeSuggestions, 150));
 $('#searchForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const q = $('#searchInput').value.trim();
+  const q = searchInput.value.trim();
   if (!q) return;
-  const ul = $('#searchResults');
-  ul.hidden = false;
-  ul.innerHTML = '<li>Searching…</li>';
+  if (ac.items.length && ac.active >= 0) { chooseSuggestion(ac.items[ac.active]); return; }
+  showSuggestions([], q, 'Searching…');
   try {
     const res = await geocode(q);
-    ul.innerHTML = res.length ? '' : '<li>No places found</li>';
-    for (const r of res) {
-      const li = document.createElement('li');
-      li.tabIndex = 0;
-      li.textContent = r.name;
-      li.onclick = li.onkeydown = (ev) => {
-        if (ev.type === 'keydown' && ev.key !== 'Enter') return;
-        ul.hidden = true;
-        selectLocation(r.lat, r.lon, r.name.split(',').slice(0, 3).join(','));
-      };
-      ul.appendChild(li);
-    }
+    if (res.length) chooseSuggestion({ main: res[0].name.split(',')[0], name: res[0].name.split(',').slice(0, 3).join(','), lat: res[0].lat, lon: res[0].lon });
+    else showSuggestions([], q);
   } catch {
-    ul.innerHTML = '<li>Search unavailable. Click the map instead.</li>';
+    showSuggestions([], q, 'Search unavailable. Click the map instead.');
   }
 });
 
@@ -153,6 +217,12 @@ function scheduleRender() { clearTimeout(renderTimer); renderTimer = setTimeout(
 document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => showTab(b.dataset.tab)));
 function showTab(tab) {
   state.tab = tab;
+  document.body.dataset.tab = tab;
+  document.querySelectorAll('#bottomNav [data-nav]').forEach((b) => {
+    const more = !['map', 'story', 'rotations', 'lab'].includes(tab);
+    if (b.dataset.nav === tab || (b.dataset.nav === 'more' && more)) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  if (tab === 'settings') { window.scrollTo({ top: 0 }); return; }
   document.querySelectorAll('.tabs button').forEach((x) => x.setAttribute('aria-selected', x.dataset.tab === tab));
   document.querySelectorAll('.tabpane').forEach((p) => { p.hidden = p.id !== 'tab-' + tab; });
   if (tab === 'climate' && state.lastResult) drawChart();
@@ -255,10 +325,10 @@ const TOUR = [
   { sel: '#lab', tab: 'lab', title: 'Satellite lab', text: 'Live readings for this exact field, decoded from NASA satellite pixels: near-infrared and heat index, NISAR and Sentinel-1 radar backscatter, NDVI and canopy density, thermal temperature and moisture, soil moisture at three depths, the crop cycle from space, UV index and soil nutrients.' },
   { sel: '#compare', tab: 'compare', title: 'Compare, tradeoffs, risk and uncertainty', text: 'Pick up to three rotations to compare side by side, including Water Certainty Rate, nitrogen, erosion and carbon. See the tradeoff map, and how much outcomes swing today and under three NASA climate models.' },
   { sel: '#game', tab: 'game', title: 'Play the 2050s', text: 'The 2050 Farm Challenge: farm 8 seasons of 2050s weather (real NASA years warmed by NASA climate models), then compare your score and soil health with AgriHaven\'s plan on the same weather.' },
-  { sel: '#headline', tab: 'rotations', title: 'The NASA story of this field', text: 'Plain-language facts: how much heat, frost-free season, downpours and hot days have changed since 1991, tested for statistical significance.' },
+  { sel: '#headline', tab: 'rotations', mtab: 'story', title: 'The NASA story of this field', text: 'Plain-language facts: how much heat, frost-free season, downpours and hot days have changed since 1991, tested for statistical significance.' },
   { sel: '#impact', tab: 'rotations', title: 'What switching is worth', text: 'Fertilizer saved, dollars, greenhouse gas avoided and fewer bad seasons, compared with today\'s corn → soybean. Change the farm size and nitrogen price.' },
   { sel: '#rotations', tab: 'rotations', title: 'Rotations ranked for this field', text: 'Each rotation is scored on climate resilience (every crop grown in every real season), soil health and fertilizer need, and each score comes with plain-English reasons.' },
-  { sel: '#scenarioCard', tab: 'rotations', title: 'Fast-forward to the 2050s', text: 'Switch to NASA NEX-GDDP-CMIP6 projections. Three independent climate models shift the real weather record, and we show whether the ranking holds across all of them.' },
+  { sel: '#scenarioCard', tab: 'rotations', mtab: 'settings', title: 'Fast-forward to the 2050s', text: 'Switch to NASA NEX-GDDP-CMIP6 projections. Three independent climate models shift the real weather record, and we show whether the ranking holds across all of them.' },
   { sel: '#tab-crops', tab: 'crops', title: 'Every crop, every season', text: 'Each square is one real growing season. Red squares line up with real disasters, like the 2012 drought, which the model finds without being told.' },
   { sel: '#tab-climate', tab: 'climate', title: 'The evidence', text: 'Nine indicators, including a FAO-56 water balance, with trend lines, Mann-Kendall p-values and Sen\'s slope. Data sources, method, validation and limitations are in Data & method.' }
 ];
@@ -266,7 +336,7 @@ let tourI = 0;
 function tourShow() {
   document.querySelectorAll('.tour-focus').forEach((e) => e.classList.remove('tour-focus'));
   const step = TOUR[tourI];
-  showTab(step.tab);
+  showTab(mobileMQ.matches && step.mtab ? step.mtab : step.tab);
   const el = $(step.sel);
   if (el) { el.classList.add('tour-focus'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   $('#tourStep').textContent = `Step ${tourI + 1} of ${TOUR.length}`;
@@ -288,6 +358,85 @@ function setStatus(html, err = false) {
   const s = $('#status');
   s.innerHTML = html;
   s.classList.toggle('err', err);
+}
+
+// ---------------- phone navigation ----------------
+const mobileMQ = matchMedia('(max-width: 760px)');
+function openSheet() { $('#moreSheet').hidden = false; $('#sheetBackdrop').hidden = false; $('#moreSheet button').focus(); }
+function closeSheet() { $('#moreSheet').hidden = true; $('#sheetBackdrop').hidden = true; }
+$('#bottomNav').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-nav]');
+  if (!b) return;
+  if (b.dataset.nav === 'more') { openSheet(); return; }
+  showTab(b.dataset.nav);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+$('#moreSheet').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  closeSheet();
+  if (b.dataset.go) { showTab(b.dataset.go); window.scrollTo({ top: 0 }); }
+  else if (b.dataset.act === 'tour') $('#tourBtn').click();
+  else if (b.dataset.act === 'share') $('#shareBtn').click();
+  else if (b.dataset.act === 'print') $('#printBtn').click();
+  else if (b.dataset.act === 'theme') $('#themeBtn').click();
+});
+$('#sheetClose').onclick = closeSheet;
+$('#sheetBackdrop').onclick = closeSheet;
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#moreSheet').hidden) closeSheet(); });
+$('#fieldChip').onclick = () => { showTab('map'); window.scrollTo({ top: 0 }); };
+if (mobileMQ.matches) document.querySelector('.layerbox')?.removeAttribute('open');
+
+// ---------------- loading screen ----------------
+const LOAD_STEPS = [
+  ['power', '🌦️', '35 years of NASA POWER daily weather', '12 variables × 12,775 days, 1991–2025'],
+  ['soil', '🟤', 'Soil profile to 1 metre', 'ISRIC SoilGrids: texture, carbon, nitrogen, pH'],
+  ['proj', '🔭', 'NASA climate projections for the 2050s', 'NEX-GDDP-CMIP6, 3 climate models'],
+  ['model', '🧮', 'Growing 10 crops in every season', 'Heat, water, frost and soil checks × 35 years'],
+  ['place', '📍', 'Naming your field', 'OpenStreetMap']
+];
+const FACTS = [
+  'NASA POWER blends satellite observations and the MERRA-2 reanalysis into daily weather for any point on Earth.',
+  'Healthy crops reflect strongly in near-infrared light (750–1400 nm). That is how NDVI "sees" plant health from space.',
+  'NASA-ISRO NISAR radar can see the ground through clouds, day or night.',
+  'Cover crops can cut soil erosion by about 40% and add roughly 0.3 tonnes of carbon per hectare each year.',
+  'In 2012, central Illinois had more than 50 summer days above 32 °C, and corn yields fell by over a third.',
+  'SMAP measures soil moisture from 685 km up using microwave emissions from the ground.'
+];
+const loader = { timer: null, steps: {} };
+function loaderShow(place) {
+  const el = $('#loader');
+  $('#loaderTitle').textContent = "Building your field's NASA profile";
+  $('#loaderPlace').textContent = place || 'Locating your field…';
+  $('#loaderSteps').innerHTML = LOAD_STEPS.map(([k, ic, t, sub]) => `<li data-k="${k}" class="run"><span class="st" aria-hidden="true"></span><span>${ic} ${esc(t)}<small>${esc(sub)}</small></span></li>`).join('');
+  $('#loaderActions').innerHTML = '';
+  loader.steps = {};
+  loaderProgress();
+  let f = Math.floor(Math.random() * FACTS.length);
+  $('#loaderFact').textContent = '💡 ' + FACTS[f];
+  clearInterval(loader.timer);
+  loader.timer = setInterval(() => { f = (f + 1) % FACTS.length; $('#loaderFact').textContent = '💡 ' + FACTS[f]; }, 3500);
+  el.hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+function loaderStep(k, ok = true, note) {
+  loader.steps[k] = ok;
+  const li = document.querySelector(`#loaderSteps [data-k="${k}"]`);
+  if (!li) return;
+  li.className = ok ? 'done' : 'fail';
+  li.querySelector('.st').textContent = ok ? '✓' : '!';
+  if (note) li.querySelector('small').textContent = note;
+  loaderProgress();
+}
+function loaderProgress() {
+  const pct = Math.round((100 * Object.keys(loader.steps).length) / LOAD_STEPS.length);
+  $('#loaderBar').setAttribute('aria-valuenow', pct);
+  $('#loaderBar div').style.width = Math.max(6, pct) + '%';
+}
+function loaderHide() {
+  clearInterval(loader.timer);
+  $('#loader').hidden = true;
+  document.body.style.overflow = '';
 }
 
 // ---------------- landing → dashboard ----------------
@@ -313,30 +462,50 @@ async function selectLocation(lat, lon, name) {
   if (marker) marker.setLatLng([lat, lon]); else marker = L.marker([lat, lon]).addTo(map);
   map.setView([lat, lon], Math.max(map.getZoom(), 7));
   $('#locLabel').textContent = `${name || 'Selected field'} · ${lat.toFixed(3)}°, ${lon.toFixed(3)}°`;
-  setStatus(`<span class="spinner"></span>Downloading 35 years of daily NASA POWER weather and SoilGrids soil data for this field…`);
+  setStatus('');
+  loaderShow(name);
   try {
-    const [power, soil, place] = await Promise.all([getPower(lat, lon), getSoil(lat, lon), name ? null : reverseName(lat, lon)]);
+    const [power, soil, place] = await Promise.all([
+      getPower(lat, lon).then((r) => { loaderStep('power'); return r; }),
+      getSoil(lat, lon).then((r) => { loaderStep('soil', true, r ? `${r.texture}, pH ${r.ph?.toFixed(1)}` : 'Not mapped here: using typical soil'); return r; }),
+      (name ? Promise.resolve(null) : reverseName(lat, lon)).then((r) => { loaderStep('place', true, r || name || 'Selected field'); if (r) $('#loaderPlace').textContent = r; return r; })
+    ]);
     if (id !== state.loadId) return;
     await projReady;
+    const site = nearestSite(state.proj, lat, lon);
+    loaderStep('proj', true, site ? `${site.name}: 3 models ready` : 'Not precomputed here: custom what-if available');
+    await new Promise((r) => setTimeout(r, 60)); // let the screen paint
     Object.assign(state, { lat, lon, raw: power.json, soil, powerUrl: power.url, soilUrl: soilUrl(lat, lon), name: name || place || 'Selected field' });
     updateSite();
     $('#locLabel').textContent = `${state.name} · ${lat.toFixed(3)}°, ${lon.toFixed(3)}°`;
+    $('#fieldChipName').textContent = state.name.split(',')[0];
     setStatus('');
     state.recent = null; state.recentErr = false;
     render();
+    loaderStep('model', true, 'Done');
+    setTimeout(loaderHide, 450);
     if (fromMapTab) toast(`NASA data loaded for ${state.name}. Open 📖 Field story to explore.`);
     getRecent(lat, lon).then((j) => { if (id === state.loadId) { state.recent = j; renderNow(); } })
       .catch(() => { if (id === state.loadId) { state.recentErr = true; renderNow(); } });
   } catch (e) {
     if (id !== state.loadId) return;
     console.error(e);
-    setStatus(`⚠️ Couldn't reach NASA POWER (${esc(e.message)}). <button type="button" id="useSample">Use offline sample (Champaign, IL)</button>`, true);
+    loaderStep('power', false, `NASA POWER didn't respond (${e.message})`);
+    $('#loaderTitle').textContent = "Couldn't reach NASA right now";
+    $('#loaderActions').innerHTML = '<button type="button" id="useSample">Use offline sample (Champaign, IL)</button><button type="button" class="ghost" id="loaderRetry">Try again</button><button type="button" class="ghost" id="loaderBack">Back to the map</button>';
+    clearInterval(loader.timer);
     $('#useSample').onclick = loadSample;
+    $('#loaderRetry').onclick = () => selectLocation(lat, lon, name);
+    $('#loaderBack').onclick = () => { loaderHide(); showTab('map'); };
+    setStatus(`⚠️ Couldn't reach NASA POWER (${esc(e.message)}). <button type="button" id="useSample2">Use offline sample (Champaign, IL)</button>`, true);
+    $('#useSample2').onclick = loadSample;
   }
 }
 
 async function loadSample() {
   enterDashboard();
+  loaderShow(SAMPLE.name);
+  ['power', 'soil', 'proj', 'place'].forEach((k) => loaderStep(k, true, 'Bundled offline sample'));
   const s = await getSample();
   Object.assign(state, { lat: SAMPLE.lat, lon: SAMPLE.lon, raw: s.power, soil: s.soil, name: SAMPLE.name,
     powerUrl: powerUrl(SAMPLE.lat, SAMPLE.lon, 1991, 2025), soilUrl: soilUrl(SAMPLE.lat, SAMPLE.lon) });
@@ -345,7 +514,10 @@ async function loadSample() {
   if (marker) marker.setLatLng([SAMPLE.lat, SAMPLE.lon]); else marker = L.marker([SAMPLE.lat, SAMPLE.lon]).addTo(map);
   map.setView([SAMPLE.lat, SAMPLE.lon], 7);
   $('#locLabel').textContent = SAMPLE.name;
+  $('#fieldChipName').textContent = 'Champaign County';
   setStatus('');
+  loaderStep('model', true);
+  setTimeout(loaderHide, 450);
   state.recent = null; state.recentErr = false;
   render();
   getRecent(SAMPLE.lat, SAMPLE.lon).then((j) => { state.recent = j; renderNow(); }).catch(() => { state.recentErr = true; renderNow(); });
@@ -1182,4 +1354,5 @@ if (params.has('lat') && params.has('lon') && Number.isFinite(+params.get('lat')
   selectLocation(+params.get('lat'), +params.get('lon'), params.get('name') || undefined);
 }
 // Otherwise start on the full-screen map and wait for the user to pick a field.
+document.body.dataset.tab = state.tab;
 renderScenarioSeg();

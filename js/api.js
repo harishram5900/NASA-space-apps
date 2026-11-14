@@ -180,6 +180,24 @@ export async function geocode(query) {
   return res.map((r) => ({ name: r.display_name, lat: +r.lat, lon: +r.lon }));
 }
 
+/**
+ * Search-as-you-type place suggestions from Photon (komoot), an OpenStreetMap
+ * geocoder built for autocomplete. (Nominatim's policy forbids autocomplete.)
+ */
+export async function suggestPlaces(q, signal) {
+  const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lang=en`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error('suggest failed');
+  const json = await res.json();
+  const seen = new Set();
+  return json.features.map((f) => {
+    const p = f.properties;
+    const main = p.name || p.city || p.county || p.state;
+    const detail = [p.county && p.county !== main ? p.county : null, p.state && p.state !== main ? p.state : null, p.country].filter(Boolean).join(', ');
+    return { main, detail, name: [main, p.state, p.countrycode].filter(Boolean).join(', '), lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], kind: p.osm_value };
+  }).filter((r) => r.main && !seen.has(r.main + r.detail) && seen.add(r.main + r.detail));
+}
+
 export async function reverseName(lat, lon) {
   try {
     const r = await fetchJson(`https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&lat=${lat}&lon=${lon}`, 10000);

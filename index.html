@@ -28,6 +28,7 @@
         <p class="tag">Test-drive your next crop rotation against 35 years of NASA observations and NASA climate projections for the 2050s, before you plant it.</p>
       </div>
     </div>
+    <button type="button" class="fieldchip" id="fieldChip" aria-label="Change field">📍 <span id="fieldChipName">Pick a field</span></button>
     <div class="top-actions">
       <button id="tourBtn" class="ghost">▶ 60-second tour</button>
       <button id="shareBtn" class="ghost">🔗 Share field</button>
@@ -177,6 +178,43 @@
       </div>
     </section>
   </main>
+
+  <nav class="bottomnav" id="bottomNav" aria-label="Main">
+    <button type="button" data-nav="map"><span aria-hidden="true">🗺️</span>Map</button>
+    <button type="button" data-nav="story"><span aria-hidden="true">📖</span>Story</button>
+    <button type="button" data-nav="rotations"><span aria-hidden="true">🔄</span>Plan</button>
+    <button type="button" data-nav="lab"><span aria-hidden="true">🛰️</span>Lab</button>
+    <button type="button" data-nav="more" aria-haspopup="dialog" aria-controls="moreSheet"><span aria-hidden="true">☰</span>More</button>
+  </nav>
+  <div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+  <div class="sheet" id="moreSheet" role="dialog" aria-modal="true" aria-label="More" hidden>
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-grid">
+      <button type="button" data-go="settings"><span aria-hidden="true">⚙️</span>Field &amp; settings</button>
+      <button type="button" data-go="compare"><span aria-hidden="true">⚖️</span>Compare &amp; risk</button>
+      <button type="button" data-go="game"><span aria-hidden="true">🎮</span>2050 Challenge</button>
+      <button type="button" data-go="climate"><span aria-hidden="true">📈</span>Climate shift</button>
+      <button type="button" data-go="crops"><span aria-hidden="true">🌾</span>Crop reliability</button>
+      <button type="button" data-go="method"><span aria-hidden="true">🔬</span>Data &amp; method</button>
+      <button type="button" data-act="tour"><span aria-hidden="true">▶</span>Guided tour</button>
+      <button type="button" data-act="share"><span aria-hidden="true">🔗</span>Share field</button>
+      <button type="button" data-act="print"><span aria-hidden="true">⬇️</span>Farm report</button>
+      <button type="button" data-act="theme"><span aria-hidden="true">🌓</span>Dark / light</button>
+    </div>
+    <button type="button" class="ghost sheet-close" id="sheetClose">Close</button>
+  </div>
+
+  <div id="loader" class="loader" role="dialog" aria-modal="true" aria-labelledby="loaderTitle" hidden>
+    <div class="loader-card">
+      <div class="loader-logo" aria-hidden="true"><img src="assets/logo.svg" alt=""><span class="orbit"></span></div>
+      <h2 id="loaderTitle">Building your field's NASA profile</h2>
+      <p class="loader-place" id="loaderPlace"></p>
+      <div class="loader-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="loaderBar"><div></div></div>
+      <ol class="loader-steps" id="loaderSteps" aria-live="polite"></ol>
+      <p class="loader-fact" id="loaderFact"></p>
+      <div class="loader-actions" id="loaderActions"></div>
+    </div>
+  </div>
 
   <div id="tour" class="tour" role="dialog" aria-live="polite" hidden>
     <div class="tour-step" id="tourStep"></div>
