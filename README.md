@@ -39,6 +39,18 @@ AgriHaven is a free web app. Click any field on Earth and it will:
 
 Satellite context layers from **NASA GIBS** (MODIS NDVI vegetation greenness, SMAP root-zone soil moisture, SEDAC croplands) show what's growing around the field right now.
 
+## ☁️ Built on Microsoft Azure
+
+| Azure service | Role |
+|---|---|
+| **Azure Static Web Apps** | Hosting on Microsoft's global network, deployed from GitHub |
+| **Azure Functions** | Backend API that fetches NASA POWER and SoilGrids for any field (`api/`) |
+| **Azure Blob Storage** | Caches each field's NASA record and soil profile: a cached field loads in ~1.7 s instead of ~28 s, and still works when NASA is slow |
+| **Azure OpenAI** | **Ask AgriHaven**: plain-language answers (English/Spanish) grounded only in the field's NASA-derived numbers |
+| **Azure Maps** | Search-as-you-type place suggestions |
+
+Setup guide and architecture: **[docs/AZURE.md](docs/AZURE.md)**. Backend tests: `npm run test:api`.
+
 ## Our brief, and where each part lives
 
 | Brief item | Where in AgriHaven | Data |

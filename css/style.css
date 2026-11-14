@@ -356,6 +356,20 @@ details.more summary { cursor: pointer; color: var(--brand); font-size: .85rem; 
 .ctable td.worst { color: var(--bad); }
 .table-wrap { overflow-x: auto; }
 
+/* Microsoft Azure */
+.azure-badge { display: inline-block; vertical-align: middle; font-size: .72rem; font-weight: 700; letter-spacing: .02em; padding: .15rem .5rem; border-radius: 6px;
+  background: #0078D4; color: #fff; margin-left: .35rem; }
+.azure-foot { display: block; margin-top: .4rem; }
+.azure-foot b { color: #0078D4; }
+:root[data-theme="dark"] .azure-foot b { color: #6CB8F6; }
+.ask .search input { font-size: 1rem; }
+.ask-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin: .6rem 0; }
+.ask-chips button { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); font-weight: 500; font-size: .82rem; padding: .35rem .7rem; border-radius: 999px; }
+.ask-answer:empty { display: none; }
+.ask-answer { background: var(--surface-2); border-left: 4px solid #0078D4; border-radius: 10px; padding: .8rem 1rem; font-size: .95rem; white-space: pre-wrap; }
+.ask-answer .q { font-weight: 700; margin-bottom: .3rem; white-space: normal; }
+.ask-answer .meta { font-size: .75rem; color: var(--muted); margin-top: .5rem; white-space: normal; }
+
 /* ---------- phone UI ---------- */
 .fieldchip, .bottomnav, .sheet, .sheet-backdrop { display: none; }
 @media (max-width: 760px) {

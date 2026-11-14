@@ -1,1 +1,12 @@
-{"name":"agrihaven","version":"1.0.0","private":true,"type":"module","scripts":{"test":"node tests/run.js","start":"python3 -m http.server 8000"}}
+{
+  "name": "agrihaven",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node tests/run.js",
+    "start": "python3 -m http.server 8000",
+    "test:api": "node tests/api.test.js",
+    "azure:local": "node tools/azure-local.mjs"
+  }
+}

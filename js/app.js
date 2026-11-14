@@ -10,6 +10,7 @@ import { impact, N_FULL_LB } from './impact.js';
 import { ROTATIONS, scoreRotations, explain } from './rotations.js';
 import { getPower, getSoil, getSample, getRecent, geocode, suggestPlaces, reverseName, GIBS_LAYERS, gibsUrl, gibsDate, powerUrl, soilUrl } from './api.js';
 import { seasonNow } from './now.js';
+import { checkAzure, azureStatus, askAgriHaven } from './azure.js';
 import { conservation } from './conservation.js';
 import { newGame, playSeason, autoPlay, SEASON_COUNT } from './game.js';
 import { buildStory, storyStrings } from './story.js';
@@ -387,9 +388,75 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#mor
 $('#fieldChip').onclick = () => { showTab('map'); window.scrollTo({ top: 0 }); };
 if (mobileMQ.matches) document.querySelector('.layerbox')?.removeAttribute('open');
 
+// ---------------- Microsoft Azure ----------------
+function updateAzureUI() {
+  const st = azureStatus();
+  const sv = st.services || {};
+  const on = st.ok;
+  $('#azureFoot').innerHTML = on
+    ? `☁️ Runs on <b>Microsoft Azure</b>: Static Web Apps · Functions · Blob Storage${sv.openai ? ' · Azure OpenAI' : ''}${sv.maps ? ' · Azure Maps' : ''}.`
+    : '☁️ Built for <b>Microsoft Azure</b> (Static Web Apps, Functions, Blob Storage, Azure OpenAI, Azure Maps). This copy is running without its Azure backend.';
+  $('#askCard').hidden = !(on && sv.openai);
+  if (state.lastResult) renderMethod(state.lastResult.rows);
+}
+checkAzure().then(updateAzureUI);
+
+const ASK_CHIPS = {
+  en: ['Which rotation should I choose, and why?', 'How risky is corn → soybean here by the 2050s?', 'Should I plant a cover crop this fall?', 'What does my soil need most?'],
+  es: ['¿Qué rotación me conviene más y por qué?', '¿Qué tan arriesgado es maíz → soja aquí en 2050?', '¿Debo sembrar un cultivo de cobertura este otoño?']
+};
+function renderAskChips() {
+  const chips = [...ASK_CHIPS.en.slice(0, 3), ASK_CHIPS.es[0]];
+  $('#askChips').innerHTML = chips.map((q) => `<button type="button">${esc(q)}</button>`).join('');
+}
+$('#askChips').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { $('#askInput').value = b.textContent; ask(b.textContent); } });
+$('#askForm').addEventListener('submit', (e) => { e.preventDefault(); const q = $('#askInput').value.trim(); if (q) ask(q); });
+renderAskChips();
+
+/** Compact, NASA-derived summary of the current field, sent to Azure OpenAI as grounding. */
+function fieldContext() {
+  const lr = state.lastResult;
+  if (!lr) return null;
+  const r = lr.obsResult;
+  const round = (x, d = 1) => (x == null || Number.isNaN(x) ? null : Math.round(x * 10 ** d) / 10 ** d);
+  const { recent } = periods([...lr.years.keys()]);
+  const n = state.recent ? seasonNow(state.recent, lr.obs, state.lat) : null;
+  const site = state.site?.ssp245, site5 = state.site?.ssp585;
+  return {
+    field: state.name, lat: round(state.lat, 3), lon: round(state.lon, 3),
+    dataSources: 'NASA POWER daily 1991-2025, NASA NEX-GDDP-CMIP6, NASA MODIS/SMAP/NISAR, ISRIC SoilGrids',
+    soil: state.soil ? { texture: state.soil.texture, pH: round(state.soil.ph), organicCarbon_gkg: round(state.soil.soc, 0), plantAvailableWater_mm: state.soil.awc, nitrogenSupply_lbPerAcre: round(soilNutrients(state.soil)?.supplyLbAc, 0) } : null,
+    climateShift_1991to2005_vs_2011to2025: lr.obsSummary.map((x) => ({ indicator: x.label, unit: x.unit, before: round(x.base), recent: round(x.recent), significantTrend: x.mk.p < 0.05 })),
+    rotations: r.scored.slice(0, 6).map((x) => ({
+      name: x.name, overallScore: round(x.total, 0), climateResilience: round(x.climate, 0), soilHealth: round(x.soil.score, 0),
+      fertilizerN_lbPerAcrePerYear: round(nitrogenBudget(x.steps, soilNutrients(state.soil)).fertilizer, 0),
+      waterCertaintyRate_pct: round(waterRateFor(x, lr), 0), soilLoss_tPerAcrePerYear: round(r.cons?.byId?.[x.id]?.lossTAc),
+      poorSeasonsOf15: x.badYears.length
+    })),
+    cropReliability_goodSeasonsPct: Object.fromEntries(Object.entries(r.rel).map(([k, v]) => [v.crop.name, { before: round(v.base.goodPct, 0), recent: round(v.recent.goodPct, 0), mainRisk: v.mainStress }])),
+    future2050s: site ? { moderate: seasonalSummary(site.mean, state.lat), high: site5 ? seasonalSummary(site5.mean, state.lat) : null, models: Object.keys(site.models) } : 'not precomputed for this region',
+    rightNow: n ? { asOf: n.asOf, rainLast30d_mm: round(n.rain30, 0), rainPercentile: n.rainPct, soilWetnessPercentile: n.wetPct, temperaturePercentile: n.tempPct, advice: n.advice } : null,
+    farm: { acres: state.acres, nitrogenPrice_perLb: state.price },
+    recentYearsAnalyzed: `${recent[0]}-${recent[recent.length - 1]}`
+  };
+}
+
+async function ask(question) {
+  const out = $('#askAnswer');
+  const lang = /[¿¡ñáéíóú]|\b(qué|cómo|debo|mi|rotación|suelo)\b/i.test(question) ? 'es' : state.lang;
+  out.innerHTML = `<div class="q">${esc(question)}</div><span class="spinner"></span>Thinking with Azure OpenAI…`;
+  try {
+    const r = await askAgriHaven(question, fieldContext(), lang);
+    out.innerHTML = `<div class="q">${esc(question)}</div>${esc(r.answer)}<div class="meta">Answered by Azure OpenAI (${esc(r.model || 'gpt-4o-mini')}) using only this field's NASA-derived data. Decision support, not a guarantee.</div>`;
+  } catch (e) {
+    out.innerHTML = `<div class="q">${esc(question)}</div>⚠️ ${esc(e.message)}`;
+  }
+}
+
 // ---------------- loading screen ----------------
 const LOAD_STEPS = [
   ['power', '🌦️', '35 years of NASA POWER daily weather', '12 variables × 12,775 days, 1991–2025'],
+  ['azure', '☁️', 'Microsoft Azure cloud', 'Azure Functions + Azure Blob Storage cache'],
   ['soil', '🟤', 'Soil profile to 1 metre', 'ISRIC SoilGrids: texture, carbon, nitrogen, pH'],
   ['proj', '🔭', 'NASA climate projections for the 2050s', 'NEX-GDDP-CMIP6, 3 climate models'],
   ['model', '🧮', 'Growing 10 crops in every season', 'Heat, water, frost and soil checks × 35 years'],
@@ -466,7 +533,14 @@ async function selectLocation(lat, lon, name) {
   loaderShow(name);
   try {
     const [power, soil, place] = await Promise.all([
-      getPower(lat, lon).then((r) => { loaderStep('power'); return r; }),
+      getPower(lat, lon).then((r) => {
+        loaderStep('power');
+        const a = azureStatus().lastData?.power;
+        loaderStep('azure', true, r.via === 'azure'
+          ? `Served by Azure Functions · ${r.cache === 'hit' ? 'Blob Storage cache hit' : 'fetched from NASA and saved to Blob Storage'}${a ? ` · ${(a.ms / 1000).toFixed(1)} s` : ''}`
+          : 'Not running on Azure here: loaded straight from NASA');
+        return r;
+      }),
       getSoil(lat, lon).then((r) => { loaderStep('soil', true, r ? `${r.texture}, pH ${r.ph?.toFixed(1)}` : 'Not mapped here: using typical soil'); return r; }),
       (name ? Promise.resolve(null) : reverseName(lat, lon)).then((r) => { loaderStep('place', true, r || name || 'Selected field'); if (r) $('#loaderPlace').textContent = r; return r; })
     ]);
@@ -505,7 +579,7 @@ async function selectLocation(lat, lon, name) {
 async function loadSample() {
   enterDashboard();
   loaderShow(SAMPLE.name);
-  ['power', 'soil', 'proj', 'place'].forEach((k) => loaderStep(k, true, 'Bundled offline sample'));
+  ['power', 'azure', 'soil', 'proj', 'place'].forEach((k) => loaderStep(k, true, 'Bundled offline sample'));
   const s = await getSample();
   Object.assign(state, { lat: SAMPLE.lat, lon: SAMPLE.lon, raw: s.power, soil: s.soil, name: SAMPLE.name,
     powerUrl: powerUrl(SAMPLE.lat, SAMPLE.lon, 1991, 2025), soilUrl: soilUrl(SAMPLE.lat, SAMPLE.lon) });
@@ -899,7 +973,8 @@ function drawLab() {
         <span>${chip(D.smap ? '✓' : '–', D.smap ? 'ok' : '')} SMAP L4 soil moisture</span>
         <span>${chip(D.nisar ? '✓' : '–', D.nisar ? 'ok' : '')} NISAR L-band radar ${chip(D.opera ? '✓' : '–', D.opera ? 'ok' : '')} OPERA Sentinel-1 radar</span>
         <span>${chip('✓', 'ok')} GPM IMERG rainfall · SEDAC croplands</span>
-        <span>${chip(state.soil ? '✓' : '–', state.soil ? 'ok' : '')} ISRIC SoilGrids (partner data) to 1 m</span></div>
+        <span>${chip(state.soil ? '✓' : '–', state.soil ? 'ok' : '')} ISRIC SoilGrids (partner data) to 1 m</span>
+        <span>${chip(azureStatus().ok ? '☁️' : '–', azureStatus().ok ? 'ok' : '')} Delivered via Microsoft Azure Functions + Blob Storage</span></div>
       <div class="src">See Data &amp; method for every request URL</div></div>
 
     <div class="labcard"><h3><span class="no">6</span> Soil moisture</h3>
@@ -1299,9 +1374,26 @@ function renderCrops(result) {
   }).join('');
 }
 
+function azureMethodTable() {
+  const st = azureStatus(), sv = st.services || {};
+  const chip = (on) => (st.ok ? (on ? '<span class="chip ok">live</span>' : '<span class="chip">not configured</span>') : '<span class="chip">off on this host</span>');
+  const d = st.lastData?.power;
+  return `<table class="azure-table">
+    <tr><th>Azure service</th><th>What it does in AgriHaven</th><th>Status</th></tr>
+    <tr><td>Azure Static Web Apps</td><td>Hosts the app on Microsoft's global network, with HTTPS and GitHub deploys</td><td>${chip(true)}</td></tr>
+    <tr><td>Azure Functions</td><td>Backend API (<code>/api/power</code>, <code>/recent</code>, <code>/soil</code>, <code>/places</code>, <code>/advisor</code>) that fetches NASA POWER and SoilGrids for any field</td><td>${chip(true)}</td></tr>
+    <tr><td>Azure Blob Storage</td><td>Saves each field's 35-year NASA record and soil profile, so repeat visits and demos load in under a second, even when NASA is slow${d ? ` (last load: ${esc(d.cache || '')}, ${(d.ms / 1000).toFixed(1)} s)` : ''}</td><td>${chip(sv.blobStorage)}</td></tr>
+    <tr><td>Azure OpenAI</td><td>"Ask AgriHaven": plain-language answers in English or Spanish, grounded only in the field's NASA-derived numbers</td><td>${chip(sv.openai)}</td></tr>
+    <tr><td>Azure Maps</td><td>Search-as-you-type place suggestions (the key stays server-side)</td><td>${chip(sv.maps)}</td></tr>
+  </table>
+  <p class="small muted">NASA data flows: browser → Azure Functions → NASA POWER / SoilGrids → Azure Blob Storage → browser. Satellite imagery tiles come straight from NASA GIBS. Without Azure the app falls back to calling NASA directly.</p>`;
+}
+
 function renderMethod(rows) {
   const y0 = rows[0]?.year, y1 = rows[rows.length - 1]?.year;
   $('#methodText').innerHTML = `
+  <h3>☁️ Microsoft Azure architecture</h3>
+  ${azureMethodTable()}
   <h3>How it works</h3>
   <div class="pipeline">
     <div><b>1 · NASA data</b>35 years of daily POWER weather + root-zone soil wetness, SoilGrids soil, NEX-GDDP-CMIP6 projections</div>

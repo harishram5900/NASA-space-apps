@@ -1,0 +1,9 @@
+{
+  "platform": { "apiRuntime": "node:20" },
+  "routes": [
+    { "route": "/api/*", "allowedRoles": ["anonymous"] },
+    { "route": "/data/*", "headers": { "Cache-Control": "public, max-age=3600" } }
+  ],
+  "globalHeaders": { "X-Content-Type-Options": "nosniff", "Referrer-Policy": "strict-origin-when-cross-origin" },
+  "mimeTypes": { ".json": "application/json", ".mp4": "video/mp4" }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "agrihaven-api",
+  "version": "1.0.0",
+  "description": "AgriHaven backend on Azure Functions: NASA data proxy + Blob Storage cache, Azure OpenAI advisor, Azure Maps search",
+  "type": "module",
+  "main": "src/functions/*.js",
+  "scripts": { "test": "node ../tests/api.test.js" },
+  "dependencies": {
+    "@azure/functions": "^4.5.0",
+    "@azure/storage-blob": "^12.24.0"
+  },
+  "engines": { "node": ">=18" }
+}

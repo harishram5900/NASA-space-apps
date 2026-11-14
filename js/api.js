@@ -1,6 +1,8 @@
 // Data access: NASA POWER (climate), ISRIC SoilGrids (soil), OSM Nominatim (place search).
 // Every call has a timeout. Results are cached in memory for the session.
 
+import { azureData, azurePlaces, azureStatus } from './azure.js';
+
 const cache = new Map();
 
 async function fetchJson(url, ms = 45000) {
@@ -32,6 +34,10 @@ export function powerUrl(lat, lon, startYear, endYear) {
 /** Daily NASA POWER data. Tries the latest complete year and steps back if it's not published yet. */
 export async function getPower(lat, lon) {
   const lastFull = new Date().getUTCFullYear() - 1;
+  // 1. Microsoft Azure: Azure Functions + Blob Storage cache (fast, survives NASA slowdowns)
+  const az = await azureData('power', lat, lon);
+  if (az?.properties?.parameter?.T2M_MAX) return { json: az, url: powerUrl(lat, lon, 1991, lastFull), via: 'azure', cache: az._agrihaven?.cache };
+  // 2. NASA POWER directly
   let err;
   for (const end of [lastFull, lastFull - 1]) {
     try {
@@ -151,10 +157,17 @@ const soilKey = (lat, lon) => `ah-soil:${lat.toFixed(2)},${lon.toFixed(2)}`;
 export async function getSoil(lat, lon) {
   // 1. Soil saved from an earlier visit (survives SoilGrids outages during a demo)
   try { const c = localStorage.getItem(soilKey(lat, lon)); if (c) return JSON.parse(c); } catch {}
-  const offsets = [[0, 0], [0.04, 0], [-0.04, 0], [0, 0.05], [0, -0.05], [0.08, 0.08], [-0.08, -0.08]];
+  // At most 3 nearby points: SoilGrids asks for no more than 5 requests a minute.
+  const offsets = [[0, 0], [0.05, 0.05], [-0.05, -0.05]];
   for (const [dy, dx] of offsets) {
     try {
-      const soil = parseSoil(await fetchJson(soilUrl(lat + dy, lon + dx), 12000));
+      // Through Azure when available; if Azure already tried (and SoilGrids was down) don't wait twice.
+      let raw = await azureData('soil', lat + dy, lon + dx, 9000);
+      if (!raw) {
+        if (azureStatus().ok) break;
+        raw = await fetchJson(soilUrl(lat + dy, lon + dx), 12000);
+      }
+      const soil = parseSoil(raw);
       if (soil) {
         const out = { ...soil, offsetKm: Math.round(Math.hypot(dy * 111, dx * 111 * Math.cos(lat * Math.PI / 180))) };
         try { localStorage.setItem(soilKey(lat, lon), JSON.stringify(out)); } catch {}
@@ -185,6 +198,9 @@ export async function geocode(query) {
  * geocoder built for autocomplete. (Nominatim's policy forbids autocomplete.)
  */
 export async function suggestPlaces(q, signal) {
+  // Azure Maps (via Azure Functions) when deployed on Azure; Photon otherwise.
+  const az = await azurePlaces(q, signal).catch(() => null);
+  if (az?.length) return az.map((p) => ({ ...p, azure: true }));
   const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lang=en`;
   const res = await fetch(url, { signal });
   if (!res.ok) throw new Error('suggest failed');
@@ -216,7 +232,7 @@ export async function getRecent(lat, lon) {
   const end = now.toISOString().slice(0, 10).replace(/-/g, '');
   const q = new URLSearchParams({ parameters: 'T2M_MAX,T2M_MIN,PRECTOTCORR,GWETROOT,GWETTOP,GWETPROF,RH2M,ALLSKY_SFC_UV_INDEX', community: 'AG',
     latitude: lat.toFixed(4), longitude: lon.toFixed(4), start, end, format: 'JSON' });
-  return fetchJson(`https://power.larc.nasa.gov/api/temporal/daily/point?${q}`, 45000);
+  return (await azureData('recent', lat, lon, 45000)) || fetchJson(`https://power.larc.nasa.gov/api/temporal/daily/point?${q}`, 45000);
 }
 
 /** Offline demo data bundled with the app (Champaign County, Illinois). */
