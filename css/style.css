@@ -84,6 +84,35 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   padding: 1rem; box-shadow: var(--shadow); margin-bottom: 1rem;
 }
 
+/* landing + map block */
+#dashboard[hidden], #landing[hidden] { display: none !important; }
+.landing { position: relative; height: calc(100vh - 160px); min-height: 460px; }
+.landing .mapblock, .maptab .mapblock { position: relative; height: 100%; }
+.mapblock #map { position: absolute; inset: 0; height: 100% !important; margin: 0; border-radius: 0; }
+.maptab { height: 72vh; min-height: 420px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow); }
+.pickcard { position: absolute; z-index: 500; top: 16px; left: 16px; width: min(380px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: 0 8px 30px rgba(0,0,0,.25); }
+.pickcard h2 { font-size: 1.25rem; }
+.layerbox { margin-top: .7rem; font-size: .85rem; }
+.layerbox summary { cursor: pointer; font-weight: 600; }
+.layerbox .layers { margin-top: .4rem; display: grid; gap: .3rem; }
+body.picked .steps { display: none; }
+.top { position: relative; }
+body:not(.picked) .top-actions { position: absolute; top: 12px; right: 16px; }
+body:not(.picked) .top-actions #tourBtn, body:not(.picked) .top-actions #shareBtn, body:not(.picked) .top-actions #printBtn { display: none; }
+.maptab .pickcard { width: min(340px, calc(100% - 32px)); }
+@media (max-width: 700px) {
+  .steps { display: none; }
+  .top { padding-top: .7rem; padding-bottom: .7rem; }
+  .top .tag { font-size: .8rem; }
+  .logo { width: 44px; height: 44px; }
+  .top h1 { font-size: 1.35rem; }
+  .landing { height: calc(100svh - 150px); }
+  .lapse button { font-size: .72rem; padding: .25rem .45rem; }
+  .pickcard { top: auto; bottom: 12px; left: 12px; right: 12px; width: auto; max-height: 55%; }
+  .layerbox { display: none; }
+}
+
 /* map + location */
 #map { height: 300px; border-radius: 10px; margin: .6rem 0; z-index: 0; }
 .search { display: flex; gap: .4rem; }

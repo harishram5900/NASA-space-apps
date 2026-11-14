@@ -37,7 +37,8 @@ const state = {
 const projReady = loadProjections().then((p) => { state.proj = p; });
 
 // ---------------- map ----------------
-const map = L.map('map', { worldCopyJump: true, zoomControl: true }).setView([40.5, -92], 4);
+const map = L.map('map', { worldCopyJump: true, zoomControl: false }).setView([28, -40], 3);
+L.control.zoom({ position: 'bottomright' }).addTo(map);
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
   maxZoom: 18, attribution: 'Imagery © Esri, Maxar, Earthstar Geographics'
 }).addTo(map);
@@ -157,6 +158,7 @@ function showTab(tab) {
   if (tab === 'climate' && state.lastResult) drawChart();
   if (tab === 'lab') renderLab();
   if (tab === 'compare') renderCompare();
+  if (tab === 'map') setTimeout(() => map.invalidateSize(), 30);
 }
 
 $('#themeBtn').onclick = () => {
@@ -247,7 +249,7 @@ $('#shareBtn').onclick = async () => {
 
 // ---------------- guided tour ----------------
 const TOUR = [
-  { sel: '#map', tab: 'rotations', title: 'Pick any field on Earth', text: 'Click the map, search a town or use a preset. AgriHaven downloads 35 years of daily NASA POWER weather and SoilGrids soil for that exact point. Toggle NASA satellite layers (MODIS greenness, SMAP soil moisture) to see current conditions.' },
+  { sel: '#mapBlock', tab: 'map', title: 'Pick any field on Earth', text: 'Click the map, search a town or use a preset. AgriHaven downloads 35 years of daily NASA POWER weather and SoilGrids soil for that exact point. Toggle NASA satellite layers (MODIS greenness, SMAP soil moisture) to see current conditions.' },
   { sel: '#nowCard', tab: 'story', title: 'Right now on this field', text: 'Live NASA POWER data (about 3 days behind real time) compared with the same dates in every year since 1991, turned into timely advice: plant, wait, irrigate or seed a cover crop.' },
   { sel: '#story', tab: 'story', title: 'The field\'s climate story', text: 'Six chapters, generated from the data: the climate this farm was built for, the year everything went wrong, the new normal, the 2050s and a plan that holds. Switch to Spanish or have it read aloud.' },
   { sel: '#lab', tab: 'lab', title: 'Satellite lab', text: 'Live readings for this exact field, decoded from NASA satellite pixels: near-infrared and heat index, NISAR and Sentinel-1 radar backscatter, NDVI and canopy density, thermal temperature and moisture, soil moisture at three depths, the crop cycle from space, UV index and soil nutrients.' },
@@ -288,9 +290,26 @@ function setStatus(html, err = false) {
   s.classList.toggle('err', err);
 }
 
+// ---------------- landing → dashboard ----------------
+function enterDashboard() {
+  const first = !document.body.classList.contains('picked');
+  if (!first) return;
+  document.body.classList.add('picked');
+  $('#landing').hidden = true;
+  $('#dashboard').hidden = false;
+  $('#mapTabSlot').appendChild($('#mapBlock'));
+  $('#pickTitle').textContent = '📍 Change field';
+  $('#pickHint').textContent = 'Click the map or search to load a different field. NASA layers and the season time-lapse are here too.';
+  showTab('story');
+  setTimeout(() => map.invalidateSize(), 50);
+}
+$('#changeField').onclick = () => { showTab('map'); $('#tab-map').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+
 async function selectLocation(lat, lon, name) {
   lon = ((lon + 540) % 360) - 180;
   const id = ++state.loadId;
+  const fromMapTab = document.body.classList.contains('picked') && state.tab === 'map';
+  enterDashboard();
   if (marker) marker.setLatLng([lat, lon]); else marker = L.marker([lat, lon]).addTo(map);
   map.setView([lat, lon], Math.max(map.getZoom(), 7));
   $('#locLabel').textContent = `${name || 'Selected field'} · ${lat.toFixed(3)}°, ${lon.toFixed(3)}°`;
@@ -305,6 +324,7 @@ async function selectLocation(lat, lon, name) {
     setStatus('');
     state.recent = null; state.recentErr = false;
     render();
+    if (fromMapTab) toast(`NASA data loaded for ${state.name}. Open 📖 Field story to explore.`);
     getRecent(lat, lon).then((j) => { if (id === state.loadId) { state.recent = j; renderNow(); } })
       .catch(() => { if (id === state.loadId) { state.recentErr = true; renderNow(); } });
   } catch (e) {
@@ -316,6 +336,7 @@ async function selectLocation(lat, lon, name) {
 }
 
 async function loadSample() {
+  enterDashboard();
   const s = await getSample();
   Object.assign(state, { lat: SAMPLE.lat, lon: SAMPLE.lon, raw: s.power, soil: s.soil, name: SAMPLE.name,
     powerUrl: powerUrl(SAMPLE.lat, SAMPLE.lon, 1991, 2025), soilUrl: soilUrl(SAMPLE.lat, SAMPLE.lon) });
@@ -1159,7 +1180,6 @@ const params = new URLSearchParams(location.search);
 if (params.has('scenario') && SCENARIOS[params.get('scenario')]) state.scenario = params.get('scenario');
 if (params.has('lat') && params.has('lon') && Number.isFinite(+params.get('lat')) && Number.isFinite(+params.get('lon'))) {
   selectLocation(+params.get('lat'), +params.get('lon'), params.get('name') || undefined);
-} else {
-  selectLocation(40.2, -88.4, 'Champaign County, Illinois');
 }
+// Otherwise start on the full-screen map and wait for the user to pick a field.
 renderScenarioSeg();
