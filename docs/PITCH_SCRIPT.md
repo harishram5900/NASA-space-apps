@@ -79,15 +79,16 @@
 **Giri (what’s next):**
 > Next, we want field-level satellite detail, a check against real harvest records, and to put this in front of Illinois farmers.
 
-**Harish (close, picks the seed bag back up):**
-> So before you plant… *(holds up the bag)* test-drive it. We’re Team AgriHaven. Thank you!
+**Harish (close, picks the CORN bag back up and holds it up):**
+> **From space to soil. From data to decisions.** *(beat)* That’s AgriHaven. Thank you!
 
 ---
 
 ## Tips for delivery
 
 - **The skit lives on timing.** Let Giri’s “I don’t read calendars” land and pause for a beat. Harish’s “…Nobody told me” should be quiet and sincere. Practise the skit 5+ times.
-- **Props:** one paper bag with “CORN” written on it. That’s all you need. Bringing it back for the final line ties the pitch together.
+- **Props:** one paper bag with “CORN” written on it. That’s all you need. Holding it up again for the slogan ties the pitch together.
+- **The slogan is the last thing the judges hear.** Say it slowly, pause after “decisions”, then “That’s AgriHaven.”
 - **Talk to the judges, not the screen.** Dhishant: glance at the screen, then face the room.
 - **Pre-load Champaign** in the demo tab 5 minutes before you go up, so it loads instantly.
 - **If the Wi-Fi fails:** switch to slides 4–5 and say the same demo lines.
