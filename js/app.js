@@ -393,9 +393,7 @@ function updateAzureUI() {
   const st = azureStatus();
   const sv = st.services || {};
   const on = st.ok;
-  $('#azureFoot').innerHTML = on
-    ? `☁️ Runs on <b>Microsoft Azure</b>: Static Web Apps · Functions · Blob Storage${sv.openai ? ' · Azure OpenAI' : ''}${sv.maps ? ' · Azure Maps' : ''}.`
-    : '☁️ Built for <b>Microsoft Azure</b> (Static Web Apps, Functions, Blob Storage, Azure OpenAI, Azure Maps). This copy is running without its Azure backend.';
+  $('#azureFoot').innerHTML = '';
   $('#askCard').hidden = !(on && sv.openai);
   if (state.lastResult) renderMethod(state.lastResult.rows);
 }
@@ -456,7 +454,6 @@ async function ask(question) {
 // ---------------- loading screen ----------------
 const LOAD_STEPS = [
   ['power', '🌦️', '35 years of NASA POWER daily weather', '12 variables × 12,775 days, 1991–2025'],
-  ['azure', '☁️', 'Microsoft Azure cloud', 'Azure Functions + Azure Blob Storage cache'],
   ['soil', '🟤', 'Soil profile to 1 metre', 'ISRIC SoilGrids: texture, carbon, nitrogen, pH'],
   ['proj', '🔭', 'NASA climate projections for the 2050s', 'NEX-GDDP-CMIP6, 3 climate models'],
   ['model', '🧮', 'Growing 10 crops in every season', 'Heat, water, frost and soil checks × 35 years'],
@@ -533,14 +530,7 @@ async function selectLocation(lat, lon, name) {
   loaderShow(name);
   try {
     const [power, soil, place] = await Promise.all([
-      getPower(lat, lon).then((r) => {
-        loaderStep('power');
-        const a = azureStatus().lastData?.power;
-        loaderStep('azure', true, r.via === 'azure'
-          ? `Served by Azure Functions · ${r.cache === 'hit' ? 'Blob Storage cache hit' : 'fetched from NASA and saved to Blob Storage'}${a ? ` · ${(a.ms / 1000).toFixed(1)} s` : ''}`
-          : 'Not running on Azure here: loaded straight from NASA');
-        return r;
-      }),
+      getPower(lat, lon).then((r) => { loaderStep('power'); return r; }),
       getSoil(lat, lon).then((r) => { loaderStep('soil', true, r ? `${r.texture}, pH ${r.ph?.toFixed(1)}` : 'Not mapped here: using typical soil'); return r; }),
       (name ? Promise.resolve(null) : reverseName(lat, lon)).then((r) => { loaderStep('place', true, r || name || 'Selected field'); if (r) $('#loaderPlace').textContent = r; return r; })
     ]);
@@ -579,7 +569,7 @@ async function selectLocation(lat, lon, name) {
 async function loadSample() {
   enterDashboard();
   loaderShow(SAMPLE.name);
-  ['power', 'azure', 'soil', 'proj', 'place'].forEach((k) => loaderStep(k, true, 'Bundled offline sample'));
+  ['power', 'soil', 'proj', 'place'].forEach((k) => loaderStep(k, true, 'Bundled offline sample'));
   const s = await getSample();
   Object.assign(state, { lat: SAMPLE.lat, lon: SAMPLE.lon, raw: s.power, soil: s.soil, name: SAMPLE.name,
     powerUrl: powerUrl(SAMPLE.lat, SAMPLE.lon, 1991, 2025), soilUrl: soilUrl(SAMPLE.lat, SAMPLE.lon) });
@@ -973,8 +963,7 @@ function drawLab() {
         <span>${chip(D.smap ? '✓' : '–', D.smap ? 'ok' : '')} SMAP L4 soil moisture</span>
         <span>${chip(D.nisar ? '✓' : '–', D.nisar ? 'ok' : '')} NISAR L-band radar ${chip(D.opera ? '✓' : '–', D.opera ? 'ok' : '')} OPERA Sentinel-1 radar</span>
         <span>${chip('✓', 'ok')} GPM IMERG rainfall · SEDAC croplands</span>
-        <span>${chip(state.soil ? '✓' : '–', state.soil ? 'ok' : '')} ISRIC SoilGrids (partner data) to 1 m</span>
-        <span>${chip(azureStatus().ok ? '☁️' : '–', azureStatus().ok ? 'ok' : '')} Delivered via Microsoft Azure Functions + Blob Storage</span></div>
+        <span>${chip(state.soil ? '✓' : '–', state.soil ? 'ok' : '')} ISRIC SoilGrids (partner data) to 1 m</span></div>
       <div class="src">See Data &amp; method for every request URL</div></div>
 
     <div class="labcard"><h3><span class="no">6</span> Soil moisture</h3>
@@ -1392,8 +1381,6 @@ function azureMethodTable() {
 function renderMethod(rows) {
   const y0 = rows[0]?.year, y1 = rows[rows.length - 1]?.year;
   $('#methodText').innerHTML = `
-  <h3>☁️ Microsoft Azure architecture</h3>
-  ${azureMethodTable()}
   <h3>How it works</h3>
   <div class="pipeline">
     <div><b>1 · NASA data</b>35 years of daily POWER weather + root-zone soil wetness, SoilGrids soil, NEX-GDDP-CMIP6 projections</div>
