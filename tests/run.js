@@ -2,7 +2,8 @@
 // Uses the bundled real NASA POWER sample for Champaign County, Illinois.
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import { parsePower, byYear, climateIndicators, indicatorSummary, cropReliability, mannKendall, applyScenario } from '../js/analysis.js';
+import { parsePower, byYear, climateIndicators, indicatorSummary, cropReliability, mannKendall, applyScenario, applyMonthlyDeltas, et0, extraterrestrialRadiation } from '../js/analysis.js';
+import { impact } from '../js/impact.js';
 import { scoreRotations, soilHealth, nitrogenNeed } from '../js/rotations.js';
 import { parseSoil } from '../js/api.js';
 
@@ -63,6 +64,41 @@ test('rotation ranking is complete and continuous corn ranks last on soil-weight
 test('Southern Hemisphere dates are shifted half a year', () => {
   const sh = parsePower(json, -31.9);
   assert.ok(sh[0].m === 7);
+});
+
+test('FAO-56 radiation and ET0 match textbook values', () => {
+  // FAO-56 Example 8: 20°S on 3 Sept (DOY 246) -> Ra = 32.2 MJ/m2/day
+  assert.ok(Math.abs(extraterrestrialRadiation(-20, 246) - 32.2) < 0.3);
+  const july = days.filter((d) => d.m === 7);
+  const mean = july.reduce((s, d) => s + et0(d), 0) / july.length;
+  assert.ok(mean > 4 && mean < 7, `July ET0 ${mean}`); // central Illinois ~5-6 mm/day
+});
+
+test('monthly climate-model deltas shift only the right month', () => {
+  const z = Array(12).fill(0), one = Array(12).fill(1);
+  const dT = [...z]; dT[6] = 2;
+  const out = applyMonthlyDeltas(days, { dTmax: dT, dTmin: z, pRatio: one });
+  const i = days.findIndex((d) => d.m === 7), j = days.findIndex((d) => d.m === 1);
+  assert.equal(+(out[i].tmax - days[i].tmax).toFixed(6), 2);
+  assert.equal(out[j].tmax, days[j].tmax);
+});
+
+test('impact maths: 25 lb N/ac on 500 ac at $0.55 = $6,875', () => {
+  const r = impact({ nNeed: 0.3, soil: { parts: { cover: 0 } }, climate: 80, badYears: [] }, { nNeed: 0.425, soil: { parts: { cover: 0 } }, climate: 80, badYears: [] }, 500, 0.55);
+  assert.equal(Math.round(r.dollars), 6875);
+  assert.ok(r.tCO2e > 40 && r.tCO2e < 55);
+});
+
+test('projection file (if built) has 3 models and sane change factors', () => {
+  const url = new URL('../data/projections.json', import.meta.url);
+  if (!fs.existsSync(url)) return;
+  const p = JSON.parse(fs.readFileSync(url));
+  for (const site of Object.values(p.sites)) for (const sc of ['ssp245', 'ssp585']) {
+    if (!site[sc]) continue;
+    assert.equal(Object.keys(site[sc].models).length, 3);
+    for (const k of ['dTmax', 'dTmin']) assert.ok(site[sc].mean[k].every((x) => x > -3 && x < 8));
+    assert.ok(site[sc].mean.pRatio.every((x) => x >= 0.6 && x <= 1.6));
+  }
 });
 
 console.log(`\n${passed} tests passed`);

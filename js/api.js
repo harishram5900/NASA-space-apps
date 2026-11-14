@@ -18,7 +18,7 @@ async function fetchJson(url, ms = 45000) {
   }
 }
 
-export const POWER_PARAMS = ['T2M_MAX', 'T2M_MIN', 'PRECTOTCORR', 'GWETROOT'];
+export const POWER_PARAMS = ['T2M_MAX', 'T2M_MIN', 'PRECTOTCORR', 'GWETROOT', 'ALLSKY_SFC_SW_DWN'];
 
 export function powerUrl(lat, lon, startYear, endYear) {
   const q = new URLSearchParams({
@@ -72,9 +72,17 @@ export function parseSoil(json) {
     soc: out.soc,                                    // g/kg
     ph: out.phh2o,
     cec: out.cec,                                    // cmol(c)/kg
-    texture: textureClass(out.sand, out.clay)
+    texture: textureClass(out.sand, out.clay),
+    awc: Math.round(AWC[textureClass(out.sand, out.clay)] * 1200)  // mm in a 1.2 m root zone
   };
 }
+
+// Plant-available water (m³/m³) by USDA texture class, typical values from the
+// USDA-NRCS National Soil Survey Handbook / Saxton & Rawls (2006).
+const AWC = {
+  sand: 0.05, 'loamy sand': 0.08, 'sandy loam': 0.12, loam: 0.16, 'silt loam': 0.2, silt: 0.2,
+  'silty clay loam': 0.18, 'clay loam': 0.16, clay: 0.13, unknown: 0.16
+};
 
 function textureClass(sand, clay) {
   if (sand == null || clay == null || Number.isNaN(sand)) return 'unknown';

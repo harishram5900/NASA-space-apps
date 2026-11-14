@@ -18,15 +18,47 @@ export function parsePower(json, lat) {
     };
     const tmax = v('T2M_MAX'), tmin = v('T2M_MIN');
     if (tmax === null || tmin === null) continue;
-    let date = new Date(Date.UTC(+k.slice(0, 4), +k.slice(4, 6) - 1, +k.slice(6, 8)));
+    const orig = new Date(Date.UTC(+k.slice(0, 4), +k.slice(4, 6) - 1, +k.slice(6, 8)));
+    const doy = Math.round((orig - Date.UTC(orig.getUTCFullYear(), 0, 1)) / 86400000) + 1;
     // Southern Hemisphere: shift by half a year so NH season windows line up.
-    if (lat < 0) date = new Date(date.getTime() + 182 * 86400000);
+    const date = lat < 0 ? new Date(orig.getTime() + 182 * 86400000) : orig;
     days.push({
       y: date.getUTCFullYear(), m: date.getUTCMonth() + 1, d: date.getUTCDate(),
-      tmax, tmin, prcp: Math.max(0, v('PRECTOTCORR') ?? 0), wet: v('GWETROOT')
+      om: orig.getUTCMonth(), ra: extraterrestrialRadiation(lat, doy),
+      tmax, tmin, prcp: Math.max(0, v('PRECTOTCORR') ?? 0), wet: v('GWETROOT'),
+      sun: v('ALLSKY_SFC_SW_DWN')
     });
   }
   return days;
+}
+
+/** FAO-56 eq. 21: extraterrestrial radiation Ra (MJ m-2 day-1). */
+export function extraterrestrialRadiation(latDeg, doy) {
+  const phi = (latDeg * Math.PI) / 180;
+  const dr = 1 + 0.033 * Math.cos((2 * Math.PI * doy) / 365);
+  const delta = 0.409 * Math.sin((2 * Math.PI * doy) / 365 - 1.39);
+  const ws = Math.acos(Math.max(-1, Math.min(1, -Math.tan(phi) * Math.tan(delta))));
+  return ((24 * 60) / Math.PI) * 0.082 * dr * (ws * Math.sin(phi) * Math.sin(delta) + Math.cos(phi) * Math.cos(delta) * Math.sin(ws));
+}
+
+/** FAO-56 eq. 52 Hargreaves reference evapotranspiration (mm/day). */
+export function et0(d) {
+  const tmean = (d.tmax + d.tmin) / 2;
+  return Math.max(0, 0.0023 * 0.408 * d.ra * (tmean + 17.8) * Math.sqrt(Math.max(0, d.tmax - d.tmin)));
+}
+
+/**
+ * Apply monthly climate-model change factors ("delta method").
+ * deltas = { dTmax[12], dTmin[12], pRatio[12] } indexed by calendar month.
+ */
+export function applyMonthlyDeltas(days, deltas) {
+  if (!deltas) return days;
+  return days.map((d) => ({
+    ...d,
+    tmax: d.tmax + deltas.dTmax[d.om],
+    tmin: d.tmin + deltas.dTmin[d.om],
+    prcp: d.prcp * deltas.pRatio[d.om]
+  }));
 }
 
 /** Apply a warming / rainfall what-if scenario. */
@@ -98,6 +130,8 @@ export const INDICATORS = [
     why: 'Downpours delay planting, waterlog fields, wash away soil and leach nitrogen.' },
   { key: 'drySpell', label: 'Longest dry spell (May–Sep)', unit: 'days', good: 'down', dec: 0,
     why: 'The longest run of days with less than 1 mm of rain. Flash droughts start this way.' },
+  { key: 'waterBalance', label: 'Water balance (rain − evaporative demand, Apr–Sep)', unit: 'mm', good: 'up', dec: 0,
+    why: 'Rain minus FAO-56 reference evapotranspiration. Below zero, crops depend on stored soil water and every heat wave hurts more.' },
   { key: 'summerSoil', label: 'Summer root-zone wetness (Jul–Aug)', unit: '0–1', good: 'up', dec: 2,
     why: 'NASA GWETROOT (0 = completely dry, 1 = saturated) shows how much water roots can reach during the critical months.' }
 ];
@@ -123,6 +157,7 @@ export function climateIndicators(years) {
       gsRain: sum(days.filter((d) => d.m >= 4 && d.m <= 9).map((d) => d.prcp)),
       springDeluge: days.filter((d) => d.m >= 4 && d.m <= 6 && d.prcp >= 25).length,
       drySpell: longestDry(days.filter((d) => d.m >= 5 && d.m <= 9)),
+      waterBalance: sum(days.filter((d) => d.m >= 4 && d.m <= 9).map((d) => d.prcp - et0(d))),
       summerSoil: wetVals.length ? mean(wetVals) : null
     });
   }
@@ -174,11 +209,11 @@ export function evalCropYear(crop, years, y, soil) {
   const rain = sum(days.map((d) => d.prcp));
   const wetVals = sens.filter((d) => d.wet !== null).map((d) => d.wet);
   const wet = wetVals.length ? mean(wetVals) : 0.6;
-  let sandFactor = 1;
-  if (soil && soil.sand != null) sandFactor = soil.sand > 60 ? 1.25 : soil.sand < 25 ? 0.9 : 1;
   // Stored soil water: GWETROOT is the fraction of saturation; above ~0.25 roots can
-  // extract it. Assume ~250 mm plant-available water in a 1.2 m loam root zone.
-  const storage = (Math.max(0, wet - 0.25) / 0.75) * 250 / sandFactor;
+  // extract it. Root-zone plant-available water comes from the SoilGrids texture
+  // (default ~200 mm for a 1.2 m loam root zone).
+  const awc = soil?.awc ?? 200;
+  const storage = (Math.max(0, wet - 0.25) / 0.75) * awc;
   const supply = rain + storage;
   const need = crop.waterNeed[0];
   if (supply < need) {

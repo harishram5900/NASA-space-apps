@@ -4,11 +4,11 @@ Space Apps projects are scored on **five criteria**: **Impact, Creativity, Valid
 
 | Criterion | What judges look for | How Rotation Radar scores |
 |---|---|---|
-| **Impact** | Does it solve a real problem for real people at scale? | Any farmer on Earth, free, no login. Illinois has ~72,000 farms and corn → soybean covers most of the Corn Belt. Shows soil-health and fertilizer savings, not only climate risk. |
-| **Creativity** | Is it a fresh approach? | We don't just show climate charts. We "grow" every crop in each of 35 real NASA seasons and turn that into a reliability strip, then add what-if warming sliders and a build-your-own rotation. |
-| **Validity** | Is the science and data sound? Does it work? | Live NASA POWER + SMAP + MODIS + SoilGrids. Standard trend statistics (Mann-Kendall, Sen's slope) with p-values. The model independently flags the 2012 and 2005 droughts. Automated tests. A clear limitations section. |
+| **Impact** | Does it solve a real problem for real people at scale? | Any farmer on Earth, free, no login. Corn → soybean covers most of the Corn Belt. For each farm it shows fertilizer saved, dollars, tonnes of CO₂e and soil-health gains, plus a printable report and a shareable link for the farmer's agronomist or lender. |
+| **Creativity** | Is it a fresh approach? | We don't just show climate charts. We "grow" every crop in each of 35 real NASA seasons, then fast-forward that real weather to the 2050s with NASA climate models and re-rank under every model separately. There's also a build-your-own rotation and a farm-impact calculator. |
+| **Validity** | Is the science and data sound? Does it work? | Live NASA POWER + NEX-GDDP-CMIP6 + SMAP + MODIS + SoilGrids. Standard methods: Mann-Kendall / Sen's slope, FAO-56 ET₀ (tested against FAO's worked example), the delta method, a 3-model ensemble with a robustness check, and IPCC emission factors. The model independently flags the 2012 and 2005 droughts. 13 automated tests, reproducible build scripts and a clear limitations section. |
 | **Relevance** | Does it address the challenge and use NASA data? | The challenge says to combine NASA Earth observations with soil and crop information for resilient crop rotations. That is exactly our pipeline. |
-| **Presentation** | Is the demo and story clear and compelling? | A 30-second story built around one farmer and one field, a live demo, and a polished, mobile-friendly UI with a printable farm report. |
+| **Presentation** | Is the demo and story clear and compelling? | A built-in 60-second guided tour, a 30-second story built around one farmer and one field, a live link, a polished mobile and dark-mode UI, and a printable farm report. |
 
 ### Award categories we're targeting
 - **Best Use of Data**: in 2024, an agriculture app on this kind of challenge won exactly this.
@@ -20,7 +20,7 @@ Space Apps projects are scored on **five criteria**: **Impact, Creativity, Valid
 ## 30-second pitch (memorize this)
 
 > "Every farmer in Illinois plans their crops on memories of a climate that's gone. NASA data shows Champaign County now gets about 150 more degree-days of heat and a frost-free season almost two weeks longer than in the 90s, and 2012 showed what one hot, dry summer does to corn.
-> **Rotation Radar** lets any farmer click their field, pulls 35 years of NASA POWER weather, NASA soil moisture and global soil data, and grows every crop in every one of those real seasons. It ranks rotations by climate resilience, soil health and fertilizer cost, in plain English. You can even turn up the heat to +2 °C and see which plan still holds.
+> **Rotation Radar** lets any farmer click their field, pulls 35 years of NASA POWER weather, NASA soil moisture and global soil data, and grows every crop in every one of those real seasons. It ranks rotations by climate resilience, soil health and fertilizer cost, in plain English. Then it fast-forwards that same field to the 2050s with three NASA climate models and checks whether the plan still holds.
 > It's free, works anywhere on Earth, and runs entirely on open NASA data."
 
 ## 2-minute demo script
@@ -30,7 +30,7 @@ Space Apps projects are scored on **five criteria**: **Impact, Creativity, Valid
 3. **(0:30) Climate shift tab.** Click *Growing degree days* and point at the significant trend. Then click *Hot days*.
 4. **(0:50) Crop reliability tab.** "Each square is one real season. See 2012? Every crop goes red. Our model found that drought on its own." Point out that oats and pea are slipping as the climate warms.
 5. **(1:10) Rotation planner.** Show the #1 rotation vs today's corn → soybean and read the plain-language reasons.
-6. **(1:25) What-if.** Drag warming to +2 °C and watch the rankings change. "Sorghum and sunflower start pulling ahead."
+6. **(1:25) 2050s.** Click *2050s · high*. "Three NASA climate models fast-forward this exact field. Hot days nearly triple, and our top rotation stays in the top 2 under every model." Point at the impact cards: fertilizer, dollars, CO₂e.
 7. **(1:40) Go global.** Click *Córdoba, AR* or *Ukraine steppe*. "Same tool, anywhere on Earth."
 8. **(1:50) Close.** "Free, open NASA data, built in 30 hours. Rotation Radar."
 

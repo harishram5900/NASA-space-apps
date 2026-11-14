@@ -4,7 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Rotation Radar</title>
-  <meta name="description" content="Test-drive crop rotations against 35 years of NASA climate data for any field on Earth. NASA Space Apps 2026: Field Shift.">
+  <meta name="description" content="Test-drive crop rotations against 35 years of NASA observations and NASA 2050s climate projections for any field on Earth. NASA Space Apps 2026: Field Shift.">
+  <meta property="og:title" content="Rotation Radar: crop rotations for a changing climate">
+  <meta property="og:description" content="35 years of NASA POWER weather + NASA NEX-GDDP-CMIP6 projections + SoilGrids soil → the crop rotation that holds up on your field.">
+  <meta property="og:image" content="og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#0b3d91">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛰️</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,12 +23,14 @@
       <span class="logo" aria-hidden="true">🛰️</span>
       <div>
         <h1>Rotation Radar</h1>
-        <p class="tag">Test-drive your next crop rotation against 35 years of NASA climate data, before you plant it.</p>
+        <p class="tag">Test-drive your next crop rotation against 35 years of NASA observations and NASA climate projections for the 2050s, before you plant it.</p>
       </div>
     </div>
     <div class="top-actions">
-      <button id="themeBtn" class="ghost" aria-label="Toggle dark mode">🌓</button>
+      <button id="tourBtn" class="ghost">▶ 60-second tour</button>
+      <button id="shareBtn" class="ghost">🔗 Share field</button>
       <button id="printBtn" class="ghost">⬇️ Farm report</button>
+      <button id="themeBtn" class="ghost" aria-label="Toggle dark mode">🌓</button>
     </div>
   </header>
 
@@ -51,15 +58,18 @@
         <div id="soilBox" class="soil"></div>
       </div>
 
-      <div class="card">
-        <h2>🌡️ What-if future</h2>
-        <p class="muted small">Stress-test the rotations against a warmer, drier climate. Every NASA observation is shifted by these amounts.</p>
-        <label class="slider">Warming <output id="dTOut">+0.0 °C</output>
-          <input id="dT" type="range" min="0" max="3" step="0.5" value="0">
-        </label>
-        <label class="slider">Growing-season rain <output id="rainOut">0%</output>
-          <input id="rain" type="range" min="-30" max="20" step="5" value="0">
-        </label>
+      <div class="card" id="scenarioCard">
+        <h2>🌡️ Which climate?</h2>
+        <div class="seg" id="scenarioSeg" role="radiogroup" aria-label="Climate scenario"></div>
+        <p class="small muted" id="scenarioInfo"></p>
+        <div id="customBox" hidden>
+          <label class="slider">Warming <output id="dTOut">+1.0 °C</output>
+            <input id="dT" type="range" min="0" max="4" step="0.5" value="1">
+          </label>
+          <label class="slider">Growing-season rain <output id="rainOut">0%</output>
+            <input id="rain" type="range" min="-30" max="20" step="5" value="0">
+          </label>
+        </div>
       </div>
 
       <div class="card">
@@ -88,6 +98,7 @@
       </nav>
 
       <div class="tabpane" id="tab-rotations">
+        <div id="impact" class="impact"></div>
         <div id="rotations"></div>
         <div class="card builder">
           <h3>🧪 Build your own rotation</h3>
@@ -104,7 +115,7 @@
             <h3 id="chartTitle">Indicator over time</h3>
             <select id="indicatorSelect" aria-label="Choose indicator"></select>
           </div>
-          <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+          <div class="chart-wrap"><canvas id="trendChart" role="img" aria-label="Bar chart of the selected climate indicator for each year with trend line and period means"></canvas></div>
           <p class="muted small" id="chartNote"></p>
         </div>
       </div>
@@ -120,9 +131,17 @@
     </section>
   </main>
 
+  <div id="tour" class="tour" role="dialog" aria-live="polite" hidden>
+    <div class="tour-step" id="tourStep"></div>
+    <h3 id="tourTitle"></h3>
+    <p id="tourText"></p>
+    <div class="tour-nav"><button type="button" class="ghost" id="tourPrev">Back</button><button type="button" id="tourNext">Next</button><button type="button" class="ghost" id="tourClose" aria-label="Close tour">✕</button></div>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+
   <footer class="foot">
     Built for the <b>NASA Space Apps Challenge 2026</b>, challenge “Field Shift: Adapting Farms with NASA Data”, by Team Rotation Radar (Chicago).
-    Data: NASA POWER · NASA GIBS (MODIS, SMAP) · ISRIC SoilGrids. Not affiliated with or endorsed by NASA. Screening tool, not agronomic advice.
+    Data: NASA POWER · NASA NEX-GDDP-CMIP6 · NASA GIBS (MODIS, SMAP, SEDAC) · ISRIC SoilGrids. Not affiliated with or endorsed by NASA. Screening tool, not agronomic advice.
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
