@@ -7,8 +7,8 @@
 | 01 | Hook | 0:00–0:20 | Harish | Slide 1 |
 | 02 | Problem | 0:20–0:45 | Giri | Slide 2 |
 | 03 | Solution | 0:45–1:05 | Atharv | Slide 3 |
-| 04 | Demo | 1:05–2:30 | Dhishant | Live app (backup: slides 4–5) |
-| 05 | The data | 2:30–3:00 | Giri | Slide 6 |
+| 04 | Demo | 1:05–2:30 | Dhishant | Live app (backup: slide 5) |
+| 05 | The data | 2:30–3:00 | Giri | Slide 4 (slide 6 if asked how you know it's right) |
 | 06 | Impact | 3:00–3:35 | Atharv | Slide 7 |
 | 07 | Team + next | 3:35–4:20 | Harish → Giri → Harish → all four | Slide 7 |
 
@@ -28,7 +28,7 @@
 
 > Farmers aren’t careless. They plan with the best information they have: their family’s experience. But NASA’s data shows that experience has quietly gone out of date.
 >
-> In Champaign County, the growing season now gets **148 more degree-days of heat** than in the ’90s, and the frost-free season is **12 days longer**. And when it goes wrong, it goes badly wrong: in **2012**, one hot, dry summer cut Illinois corn by **more than a third**.
+> In Champaign County, the growing season now gets **148 more degree-days of heat** than in the ’90s, and the frost-free season is **12 days longer**. And when it goes wrong, it goes badly wrong: in **2012**, one hot, dry summer cut Illinois corn by **about a third**.
 
 ## 03 · SOLUTION (Atharv, 0:45–1:05) · Slide 3
 
@@ -51,7 +51,7 @@
 5. **Compare & risk → click “2050s · high”**
    > “And here’s the decision. Corn-soybean looks safe today, but it uses the most fertilizer and loses the most soil. Jump to the 2050s with three NASA climate models: hot days almost triple. We don’t hide that uncertainty. We show it.”
 
-## 05 · THE DATA (Giri, 2:30–3:00) · Slide 6
+## 05 · THE DATA (Giri, 2:30–3:00) · Slide 4
 
 > Everything you just saw comes from NASA: **35 years of daily NASA POWER weather**, **NEX-GDDP-CMIP6** climate projections, and satellites: **MODIS, SMAP, NISAR, GPM**. We even turn satellite pixels back into real numbers for one single field.
 >
@@ -85,7 +85,8 @@
 - **The slogan is the last thing the judges hear, from all four of you at once.** Practise it together until you’re in sync. Slow, a small pause between the two halves, then stop.
 - **Talk to the judges, not the screen.** Dhishant: glance at the screen, then face the room.
 - **Pre-load Champaign** in the demo tab 5 minutes before you go up, so it loads instantly.
-- **If the Wi-Fi fails:** switch to slides 4–5 and say the same demo lines.
+- **If the Wi-Fi fails:** switch to slides 3 and 5 and say the same demo lines.
+- **Clicker path:** 1 → 2 → 3 → live demo → 4 → 7. Slides 5 (decision view) and 6 (validity) are backups for Wi-Fi trouble and judge questions.
 - **If you run long:** cut demo step 3 (2012) first, then the last sentence of Impact.
 
 ## Likely judge questions
