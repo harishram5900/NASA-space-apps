@@ -10,7 +10,7 @@ const T = {
     meetNoSoil: (c) => `Every number in this story comes from NASA satellites and models for this exact point on Earth: ${c.days.toLocaleString()} days of weather, from ${c.y0} to ${c.y1}.`,
     built: (c) => `From ${c.b0} to ${c.b1}, the growing season here averaged ${c.gdd} degree-days of heat, ${c.ff} frost-free days and ${c.hot} hot days (≥ 32 °C) each summer. That is the climate most farm habits were built on.`,
     worst: (c) => `In ${c.year}, ${c.hot} summer days topped 32 °C, the growing season got ${c.rain} mm of rain, and the longest dry spell lasted ${c.dry} days. Using only NASA data, our model scores ${c.crop} at just ${c.score}/100 that year, one of its worst seasons in ${c.n} years.`,
-    newNormal: (c) => `Since ${c.r0}, growing-season heat is ${c.dGdd >= 0 ? 'up' : 'down'} ${Math.abs(c.dGdd)} degree-days and the frost-free season is ${Math.abs(c.dFf)} days ${c.dFf >= 0 ? 'longer' : 'shorter'}. Heavy spring downpours went from ${c.del0} to ${c.del1} a year. ${c.sig} of ${c.nInd} climate indicators show a statistically significant trend.`,
+    newNormal: (c) => `Since ${c.r0}, growing-season heat is ${c.dGdd >= 0 ? 'up' : 'down'} ${Math.abs(c.dGdd)} degree-days and the frost-free season is ${Math.abs(c.dFf)} days ${c.dFf >= 0 ? 'longer' : 'shorter'}. Heavy spring downpours went from ${c.del0} to ${c.del1} a year${c.plant != null ? `, soil warms enough to plant about ${Math.abs(c.plant)} days ${c.plant <= 0 ? 'earlier' : 'later'}, and hot summer nights went from ${c.n0} to ${c.n1}` : ''}. ${c.sig} of ${c.nInd} climate indicators show a statistically significant trend.`,
     future: (c) => `Three NASA climate models (NEX-GDDP-CMIP6, moderate emissions) project the growing season here to warm by ${c.dT} °C by the 2050s, with ${c.rain >= 0 ? '+' : ''}${c.rain}% rain. Hot summer days would go from ${c.hot0} to about ${c.hot1} a year.`,
     plan: (c) => `For this field, ${c.top} scores ${c.score}/100, ${c.diff} points ahead of ${c.base}. ${c.robust}On ${c.acres} acres it would save about ${c.lb} lb of nitrogen per acre, $${c.usd} and ${c.co2} tonnes of CO₂e every year.`,
     robust: (lo, hi) => `Under all three NASA climate models for the 2050s it still ranks #${lo}${hi !== lo ? '–#' + hi : ''}. `,
@@ -24,7 +24,7 @@ const T = {
     meetNoSoil: (c) => `Cada número de esta historia proviene de satélites y modelos de la NASA para este punto exacto de la Tierra: ${c.days.toLocaleString('es')} días de clima, de ${c.y0} a ${c.y1}.`,
     built: (c) => `De ${c.b0} a ${c.b1}, la temporada de cultivo tuvo en promedio ${c.gdd} grados-día de calor, ${c.ff} días sin heladas y ${c.hot} días calurosos (≥ 32 °C) cada verano. Ese es el clima sobre el que se construyeron la mayoría de las costumbres agrícolas.`,
     worst: (c) => `En ${c.year}, ${c.hot} días de verano superaron los 32 °C, la temporada recibió ${c.rain} mm de lluvia y la racha seca más larga duró ${c.dry} días. Usando solo datos de la NASA, nuestro modelo le da al ${esCrop(c.crop)} apenas ${c.score}/100 ese año, una de sus peores temporadas en ${c.n} años.`,
-    newNormal: (c) => `Desde ${c.r0}, el calor de la temporada ${c.dGdd >= 0 ? 'subió' : 'bajó'} ${Math.abs(c.dGdd)} grados-día y el período sin heladas es ${Math.abs(c.dFf)} días más ${c.dFf >= 0 ? 'largo' : 'corto'}. Los aguaceros fuertes de primavera pasaron de ${c.del0} a ${c.del1} por año. ${c.sig} de ${c.nInd} indicadores climáticos muestran una tendencia estadísticamente significativa.`,
+    newNormal: (c) => `Desde ${c.r0}, el calor de la temporada ${c.dGdd >= 0 ? 'subió' : 'bajó'} ${Math.abs(c.dGdd)} grados-día y el período sin heladas es ${Math.abs(c.dFf)} días más ${c.dFf >= 0 ? 'largo' : 'corto'}. Los aguaceros fuertes de primavera pasaron de ${c.del0} a ${c.del1} por año${c.plant != null ? `, el suelo se calienta lo suficiente para sembrar unos ${Math.abs(c.plant)} días ${c.plant <= 0 ? 'antes' : 'después'} y las noches calurosas de verano pasaron de ${c.n0} a ${c.n1}` : ''}. ${c.sig} de ${c.nInd} indicadores climáticos muestran una tendencia estadísticamente significativa.`,
     future: (c) => `Tres modelos climáticos de la NASA (NEX-GDDP-CMIP6, emisiones moderadas) proyectan que la temporada de cultivo aquí se calentará ${c.dT} °C para la década de 2050, con ${c.rain >= 0 ? '+' : ''}${c.rain}% de lluvia. Los días calurosos de verano pasarían de ${c.hot0} a unos ${c.hot1} por año.`,
     plan: (c) => `Para este campo, ${c.top} obtiene ${c.score}/100, ${c.diff} puntos más que ${c.base}. ${c.robust}En ${c.acres} acres ahorraría unas ${c.lb} libras de nitrógeno por acre, $${c.usd} y ${c.co2} toneladas de CO₂e cada año.`,
     robust: (lo, hi) => `Con los tres modelos climáticos de la NASA para 2050 sigue en el puesto #${lo}${hi !== lo ? '–#' + hi : ''}. `,
@@ -91,7 +91,9 @@ export function buildStory(ctx) {
 
   const sig = summary.filter((s) => s.mk.p < 0.05).length;
   chapters.push({ icon: '📈', title: L.ch4, big: `${g.delta >= 0 ? '+' : ''}${r0(g.delta)}`, bigLabel: L.big.degdays,
-    text: L.newNormal({ r0: g.recentYears[0], dGdd: r0(g.delta), dFf: r0(ff.delta), del0: r0(del.base, 1), del1: r0(del.recent, 1), sig, nInd: summary.length }),
+    text: L.newNormal({ r0: g.recentYears[0], dGdd: r0(g.delta), dFf: r0(ff.delta), del0: r0(del.base, 1), del1: r0(del.recent, 1), sig, nInd: summary.length,
+      plant: S('plantDate') && !Number.isNaN(S('plantDate').delta) ? Math.round(S('plantDate').delta) : null,
+      n0: S('hotNights') ? r0(S('hotNights').base, 1) : null, n1: S('hotNights') ? r0(S('hotNights').recent, 1) : null }),
     chart: sparkBars(rows.map((r) => r.gdd), { split: years.length - (g.recentYears[1] - g.recentYears[0] + 1), color: 'var(--brand-2)' }) });
 
   if (ctx.future) {

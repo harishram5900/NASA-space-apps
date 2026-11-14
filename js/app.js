@@ -5,8 +5,10 @@ import {
 import { loadProjections, nearestSite, SCENARIOS, seasonalSummary } from './projections.js';
 import { impact, N_FULL_LB } from './impact.js';
 import { ROTATIONS, scoreRotations, explain } from './rotations.js';
-import { getPower, getSoil, getSample, getRecent, geocode, reverseName, GIBS_LAYERS, gibsUrl, powerUrl, soilUrl } from './api.js';
+import { getPower, getSoil, getSample, getRecent, geocode, reverseName, GIBS_LAYERS, gibsUrl, gibsDate, powerUrl, soilUrl } from './api.js';
 import { seasonNow } from './now.js';
+import { conservation } from './conservation.js';
+import { newGame, playSeason, autoPlay, SEASON_COUNT } from './game.js';
 import { buildStory, storyStrings } from './story.js';
 
 const $ = (s) => document.querySelector(s);
@@ -39,19 +41,58 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
   maxZoom: 18, opacity: 0.8
 }).addTo(map);
-const now = new Date();
-const peakYear = now.getUTCMonth() >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
-const gibsDate = `${peakYear}-07-28`;
 const overlays = {};
 for (const [key, layer] of Object.entries(GIBS_LAYERS)) {
-  overlays[key] = L.tileLayer(gibsUrl(layer, gibsDate), {
+  overlays[key] = L.tileLayer(gibsUrl(layer), {
     maxNativeZoom: layer.maxNative, maxZoom: 18, opacity: 0.65,
     attribution: 'NASA GIBS / EOSDIS'
   });
+  const d = gibsDate(layer);
   const lab = document.createElement('label');
-  lab.innerHTML = `<input type="checkbox" data-layer="${key}"> ${esc(layer.label)}${layer.daily ? ` <span class="muted">(${gibsDate})</span>` : ''}`;
+  lab.innerHTML = `<input type="checkbox" data-layer="${key}"> ${esc(layer.label)}${/^\d{4}-\d\d-\d\d$/.test(d) && layer.when !== '2024-01-01' ? ` <span class="muted">(${d})</span>` : ''}`;
   $('#layers').appendChild(lab);
 }
+
+// ---------------- season time-lapse (MODIS NDVI) ----------------
+const lapse = { layer: null, timer: null, frames: [], i: 0 };
+function lapseFrames() {
+  const now = new Date();
+  const y = now.getUTCMonth() >= 9 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+  const out = [];
+  for (let d = new Date(Date.UTC(y, 3, 1)); d <= new Date(Date.UTC(y, 9, 31)); d = new Date(d.getTime() + 16 * 86400000)) out.push(d.toISOString().slice(0, 10));
+  return out;
+}
+const LapseCtl = L.Control.extend({
+  onAdd() {
+    const div = L.DomUtil.create('div', 'lapse');
+    div.innerHTML = '<button type="button" id="lapseBtn" title="Watch this season grow from space">▶ Season from space</button><span id="lapseDate"></span>';
+    L.DomEvent.disableClickPropagation(div);
+    return div;
+  }
+});
+map.addControl(new LapseCtl({ position: 'topright' }));
+function lapseStop() {
+  clearInterval(lapse.timer); lapse.timer = null;
+  if (lapse.layer) { map.removeLayer(lapse.layer); lapse.layer = null; }
+  $('#lapseBtn').textContent = '▶ Season from space';
+  $('#lapseDate').textContent = '';
+}
+$('#lapseBtn').onclick = () => {
+  if (lapse.timer) { lapseStop(); return; }
+  lapse.frames = lapseFrames(); lapse.i = 0;
+  const ndvi = GIBS_LAYERS.ndvi;
+  lapse.layer = L.tileLayer(gibsUrl(ndvi, lapse.frames[0]), { maxNativeZoom: ndvi.maxNative, maxZoom: 18, opacity: 0.8 }).addTo(map);
+  if (map.getZoom() > 9) map.setZoom(9);
+  $('#lapseBtn').textContent = '⏹ Stop';
+  const show = () => {
+    const f = lapse.frames[lapse.i % lapse.frames.length];
+    lapse.layer.setUrl(gibsUrl(ndvi, f));
+    $('#lapseDate').textContent = `MODIS NDVI · ${new Date(f + 'T00:00:00Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' })}`;
+    lapse.i++;
+  };
+  show();
+  lapse.timer = setInterval(show, 1300);
+};
 $('#layers').addEventListener('change', (e) => {
   const k = e.target.dataset.layer;
   if (!k) return;
@@ -204,6 +245,7 @@ const TOUR = [
   { sel: '#map', tab: 'rotations', title: 'Pick any field on Earth', text: 'Click the map, search a town or use a preset. AgriHaven downloads 35 years of daily NASA POWER weather and SoilGrids soil for that exact point. Toggle NASA satellite layers (MODIS greenness, SMAP soil moisture) to see current conditions.' },
   { sel: '#nowCard', tab: 'story', title: 'Right now on this field', text: 'Live NASA POWER data (about 3 days behind real time) compared with the same dates in every year since 1991, turned into timely advice: plant, wait, irrigate or seed a cover crop.' },
   { sel: '#story', tab: 'story', title: 'The field\'s climate story', text: 'Six chapters, generated from the data: the climate this farm was built for, the year everything went wrong, the new normal, the 2050s and a plan that holds. Switch to Spanish or have it read aloud.' },
+  { sel: '#game', tab: 'game', title: 'Play the 2050s', text: 'The 2050 Farm Challenge: farm 8 seasons of 2050s weather (real NASA years warmed by NASA climate models), then compare your score and soil health with AgriHaven\'s plan on the same weather.' },
   { sel: '#headline', tab: 'rotations', title: 'The NASA story of this field', text: 'Plain-language facts: how much heat, frost-free season, downpours and hot days have changed since 1991, tested for statistical significance.' },
   { sel: '#impact', tab: 'rotations', title: 'What switching is worth', text: 'Fertilizer saved, dollars, greenhouse gas avoided and fewer bad seasons, compared with today\'s corn → soybean. Change the farm size and nitrogen price.' },
   { sel: '#rotations', tab: 'rotations', title: 'Rotations ranked for this field', text: 'Each rotation is scored on climate resilience (every crop grown in every real season), soil health and fertilizer need, and each score comes with plain-English reasons.' },
@@ -303,6 +345,7 @@ function render() {
   const weights = { climate: +$('#wClimate').value, soil: +$('#wSoil').value, inputs: +$('#wInputs').value };
   const list = [...ROTATIONS, ...state.custom];
   const result = scoreRotations(years, state.soil, weights, list);
+  result.cons = conservation(result.scored, years, state.soil);
   // Robustness: re-rank under each climate model separately.
   result.robust = null;
   if (proj) {
@@ -330,6 +373,7 @@ function render() {
   renderMethod(rows);
   renderStory();
   renderNow();
+  if (!game.g) renderGame();
   if (state.tab === 'climate') drawChart();
 }
 
@@ -431,6 +475,68 @@ function renderNow() {
     <ul>${n.advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul>`;
 }
 
+// ---------------- 2050 Farm Challenge (game) ----------------
+const game = { g: null, pick: 'corn', cover: false, key: null };
+function gameYears() {
+  const lr = state.lastResult;
+  if (!lr) return null;
+  const site = state.site?.ssp245;
+  return { years: byYear(site ? applyMonthlyDeltas(lr.obs, site.mean) : applyScenario(lr.obs, 1.5, -5)), projected: !!site };
+}
+function renderGame() {
+  const el = $('#game');
+  const lr = state.lastResult;
+  if (!lr) { el.innerHTML = ''; return; }
+  const key = `${state.lat},${state.lon}`;
+  if (game.key !== key) { game.g = null; game.key = key; }
+  const g = game.g;
+  if (!g) {
+    el.innerHTML = `<div class="card"><h2>🎮 The 2050 Farm Challenge</h2>
+      <p>It's the 2050s on <b>${esc(state.name)}</b>. You farm it for <b>${SEASON_COUNT} seasons</b>. Each season's weather is a real NASA-observed year from this field, warmed by ${gameYears()?.projected ? 'NASA NEX-GDDP-CMIP6 climate models' : '+1.5 °C'}. You won't know the weather until harvest, just like real farming.</p>
+      <p class="muted small">Pick a crop each season. Repeating a crop builds up pests, legumes leave nitrogen for the next crop, and cover crops protect the soil from downpours. Soil health feeds back into your harvests. At the end, see how you compare with AgriHaven's recommended plan on the exact same weather.</p>
+      <button type="button" id="gameStart">Start farming →</button></div>`;
+    $('#gameStart').onclick = () => { const gy = gameYears(); game.g = newGame(gy.years); game.pick = 'corn'; game.cover = false; renderGame(); };
+    return;
+  }
+  const meters = `<div class="meters">
+    <div class="meter">Season<b>${Math.min(g.i + 1, SEASON_COUNT)} / ${SEASON_COUNT}</b></div>
+    <div class="meter">Harvest points<b>${g.points}</b></div>
+    <div class="meter">Soil health<b style="color:${g.soil >= 60 ? 'var(--good)' : g.soil >= 35 ? 'var(--mid)' : 'var(--bad)'}">${g.soil}/100</b></div></div>`;
+  const log = `<ul class="log">${[...g.history].reverse().map((h) => `<li><b class="s">${h.score}/100 · +${h.pts} pts</b>
+      <b>Season ${h.season}</b>: ${CROPS[h.crop].emoji} ${esc(CROPS[h.crop].name)}${h.cover ? ' + 🌱 rye' : ''}<br>
+      <span class="muted small">Weather (based on ${h.year}, 2050s-warmed): ${h.weather.hot} hot days, ${h.weather.rain} mm growing-season rain.</span>
+      ${h.stresses.length ? `<br><span class="small">⚠️ ${esc(h.stresses.slice(0, 2).map((x) => x.text).join('; '))}</span>` : '<br><span class="small">✅ Great season, no major stress.</span>'}
+      ${h.notes.map((n) => `<br><span class="small">${esc(n)}</span>`).join('')}
+      <br><span class="small muted">Soil ${h.dSoil >= 0 ? '+' : ''}${h.dSoil} → ${h.soil}/100</span></li>`).join('')}</ul>`;
+  if (g.i < SEASON_COUNT) {
+    el.innerHTML = `<div class="card"><h2>🎮 Season ${g.i + 1}: what will you plant?</h2>${meters}
+      <div class="picks">${Object.entries(CROPS).map(([k, c]) => `<button type="button" data-crop="${k}" aria-pressed="${game.pick === k}">${c.emoji} ${esc(c.name)}</button>`).join('')}</div>
+      <label><input type="checkbox" id="gameCover" ${game.cover ? 'checked' : ''}> 🌱 Plant a cereal rye cover crop after harvest</label>
+      <p class="small muted">${esc(CROPS[game.pick].note)}</p>
+      <button type="button" id="gamePlant">Plant ${esc(CROPS[game.pick].name)} →</button></div>${log}`;
+    el.querySelectorAll('[data-crop]').forEach((b) => { b.onclick = () => { game.pick = b.dataset.crop; renderGame(); }; });
+    $('#gameCover').onchange = (e) => { game.cover = e.target.checked; };
+    $('#gamePlant').onclick = () => { playSeason(g, { crop: game.pick, cover: game.cover }, state.soil); renderGame(); };
+    return;
+  }
+  // Final: compare with AgriHaven's plan and today's default on the same weather
+  const r = scoreRotations(g.years, state.soil, lr.weights, lr.list);
+  const top = r.scored[0];
+  const ai = autoPlay(g.years, g.seq, top.steps, state.soil);
+  const cs = autoPlay(g.years, g.seq, ['corn', 'soybean'], state.soil);
+  const best = Math.max(g.points, ai.points, cs.points);
+  const verdict = g.points >= ai.points ? '🏆 You beat AgriHaven\'s plan!' : g.points >= cs.points ? '👍 You beat corn → soybean, but AgriHaven\'s plan did better.' : '🌱 The 2050s were tough. Try mixing in legumes and cover crops.';
+  el.innerHTML = `<div class="card final"><h2>${verdict}</h2>
+    <div class="vs">
+      <div class="${g.points === best ? 'win' : ''}">You<b>${g.points}</b><span class="small">soil ${g.soil}/100</span></div>
+      <div class="${ai.points === best ? 'win' : ''}">AgriHaven plan<br><span class="small">${esc(top.name)}</span><b>${ai.points}</b><span class="small">soil ${ai.soil}/100</span></div>
+      <div class="${cs.points === best ? 'win' : ''}">Corn → Soybean<b>${cs.points}</b><span class="small">soil ${cs.soil}/100</span></div>
+    </div>
+    <p class="small muted">Same ${SEASON_COUNT} seasons of 2050s weather for everyone (challenge #${g.seed}). Harvest points are a game simplification: the crop outcome score × a relative crop value × a soil-health bonus.</p>
+    <button type="button" id="gameAgain">Play again</button></div>${log}`;
+  $('#gameAgain').onclick = () => { game.g = null; renderGame(); };
+}
+
 // ---------------- sonification ----------------
 let audioCtx = null;
 $('#hearBtn').onclick = () => {
@@ -469,6 +575,11 @@ function renderSoil() {
     <div>Clay<b>${fmt(s.clay, 0)}%</b></div>
     <div>Sand<b>${fmt(s.sand, 0)}%</b></div>
     <div>CEC<b>${fmt(s.cec, 0)}</b></div>
+    <div>Total N<b>${fmt(s.nitrogen, 1)} g/kg</b></div>
+    <div>Bulk density<b>${fmt(s.bdod, 2)} g/cm³</b></div>
+    <div>Root-zone water<b>${fmt(s.awc)} mm</b></div>
+    ${s.socStock ? `<div style="grid-column:1/-1">Soil carbon stock (0–30 cm)<b>${fmt(s.socStock)} t C/ha</b></div>` : ''}
+    ${s.profile?.length ? `<div style="grid-column:1/-1" class="profile" title="SoilGrids profile, 0–100 cm">${s.profile.map((l) => `<span style="flex:${parseInt(l.depth.split('-')[1]) - parseInt(l.depth)}">${esc(l.depth.replace('cm', ''))} cm<br><i>${esc(l.texture)}</i></span>`).join('')}</div>` : ''}
     ${s.offsetKm ? `<p class="muted small" style="grid-column:1/-1">Nearest mapped farmland soil, about ${s.offsetKm} km away.</p>` : ''}`
     : '<p class="muted small" style="grid-column:1/-1">No SoilGrids data here (urban area, water or service offline). Using neutral soil assumptions.</p>';
 }
@@ -521,6 +632,7 @@ function renderRotations(result) {
           ${bar('Soil health', r.soil.score)}
           ${bar('Low fertilizer need', r.inputs, 'var(--brand)')}
         </div>
+        ${consLine(result, r)}
         ${robustLine(result, r)}
         <ul class="why">${lines.slice(0, 3).map((l) => `<li>${esc(l)}</li>`).join('')}</ul>
         ${lines.length > 3 ? `<details class="more"><summary>More detail</summary><ul class="why">${lines.slice(3).map((l) => `<li>${esc(l)}</li>`).join('')}</ul></details>` : ''}
@@ -528,6 +640,13 @@ function renderRotations(result) {
       <div class="total"><b style="color:${color(r.total)}">${fmt(r.total)}</b><span>overall /100</span></div>
     </article>`;
   }).join('');
+}
+
+function consLine(result, r) {
+  const c = result.cons?.byId?.[r.id];
+  if (!c) return '';
+  const over = c.lossTAc > result.cons.tolerance;
+  return `<div class="robust">🟤 Soil loss ≈ <b style="color:${over ? 'var(--bad)' : 'inherit'}">${fmt(c.lossTAc, 1)} t/acre/yr</b>${over ? ' (above the 5 t/ac tolerance)' : ''} · 🌍 Soil carbon ${c.carbonTHa > 0 ? `<b>+${fmt(c.carbonTHa, 2)} t C/ha/yr</b>` : 'no gain'}</div>`;
 }
 
 function robustLine(result, r) {
@@ -553,6 +672,14 @@ function renderImpact(result) {
     <div class="kpi"><b>${fmt(im.savedLbPerAc)} lb</b><span>less nitrogen per acre per year with <i>${esc(top.name)}</i> vs corn → soybean</span></div>
     <div class="kpi"><b>$${fmt(im.dollars)}</b><span>fertilizer saved per year on ${fmt(state.acres)} acres</span></div>
     <div class="kpi"><b>${fmt(im.tCO2e, 0)} t CO₂e</b><span>greenhouse gas avoided per year (≈ ${fmt(im.carsEquivalent, 0)} cars off the road)</span></div>
+    ${(() => {
+      const cs = result.cons?.byId?.[base.id], ct = result.cons?.byId?.[top.id];
+      if (!cs || !ct) return '';
+      const savedT = (cs.lossTAc - ct.lossTAc) * state.acres;
+      const co2 = (ct.carbonTHa - cs.carbonTHa) * 3.667 * state.acres * 0.4047;
+      return `<div class="kpi"><b>${fmt(Math.max(0, savedT))} t</b><span>topsoil kept on your fields per year (${fmt(cs.lossTAc, 1)} → ${fmt(ct.lossTAc, 1)} t/acre, RUSLE with NASA rainfall)</span></div>
+        <div class="kpi"><b>${fmt(Math.max(0, co2))} t CO₂</b><span>pulled into your soil per year as organic carbon (cover crops + rotation diversity)</span></div>`;
+    })()}
     <div class="kpi"><b>+${fmt(top.soil.score - base.soil.score)}</b><span>soil-health points: ${top.soil.families} plant families vs ${base.soil.families}${im.climateDelta >= 1 ? `, and +${fmt(im.climateDelta)} climate resilience` : ''}${im.badYearsDelta > 0 ? `, ${im.badYearsDelta} fewer poor seasons` : ''}</span></div>
     <div class="farm">Your farm:
       <label>acres <input id="acres" type="number" min="1" step="10" value="${state.acres}"></label>
@@ -655,10 +782,10 @@ function renderMethod(rows) {
   <h3>Data sources</h3>
   <table>
     <tr><th>Dataset</th><th>What we use</th><th>Resolution</th></tr>
-    <tr><td><a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">NASA POWER</a> (Agroclimatology), from MERRA-2 reanalysis and NASA satellite products</td><td>Daily max/min air temperature (T2M_MAX, T2M_MIN), precipitation (PRECTOTCORR), root-zone soil wetness (GWETROOT), ${y0}–${y1}</td><td>Daily, ~0.5° × 0.625°</td></tr>
-    <tr><td><a href="https://www.earthdata.nasa.gov/eosdis/science-system-description/eosdis-components/gibs" target="_blank" rel="noopener">NASA GIBS</a>: MODIS Terra NDVI, SMAP L4 root-zone soil moisture, SEDAC croplands</td><td>Map layers to see current crop greenness and soil moisture around the field</td><td>250 m – 9 km</td></tr>
+    <tr><td><a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">NASA POWER</a> (Agroclimatology), from MERRA-2 reanalysis and CERES/GEWEX satellite radiation</td><td>11 daily variables, ${y0}–${y1}: max/min air temperature, dew point, humidity, wind, solar radiation, rain, soil-surface temperature, and surface, root-zone and full-profile soil wetness (GWETTOP / GWETROOT / GWETPROF). Plus near-real-time data for the current season (~3-day latency)</td><td>Daily, ~0.5° × 0.625°</td></tr>
+    <tr><td><a href="https://www.earthdata.nasa.gov/eosdis/science-system-description/eosdis-components/gibs" target="_blank" rel="noopener">NASA GIBS</a>: MODIS Terra NDVI, MODIS GPP (plant productivity), MODIS land surface temperature, MODIS land cover, SMAP L4 root-zone soil moisture, GPM IMERG rainfall, SEDAC croplands</td><td>Map layers, plus a season time-lapse of MODIS NDVI showing the crop greening up and drying down from space</td><td>250 m – 10 km</td></tr>
     <tr><td><a href="https://www.nccs.nasa.gov/services/data-collections/land-based-products/nex-gddp-cmip6" target="_blank" rel="noopener">NASA NEX-GDDP-CMIP6</a> v2.0 (NASA Center for Climate Simulation)</td><td>Bias-corrected, downscaled daily Tmax, Tmin and precipitation from 3 CMIP6 models (GFDL-ESM4, MRI-ESM2-0, ACCESS-CM2) under SSP2-4.5 and SSP5-8.5. Monthly change factors 2050s vs 2000s, applied to the observed record</td><td>Daily, 0.25°</td></tr>
-    <tr><td><a href="https://soilgrids.org" target="_blank" rel="noopener">ISRIC SoilGrids 2.0</a></td><td>Topsoil (0–30 cm) clay, sand, silt, organic carbon, pH, CEC. Texture sets root-zone water storage (USDA-NRCS available-water values)</td><td>250 m</td></tr>
+    <tr><td><a href="https://soilgrids.org" target="_blank" rel="noopener">ISRIC SoilGrids 2.0</a></td><td>Five depths to 1 m: clay, sand, silt, organic carbon, pH, CEC, total nitrogen, bulk density. Gives root-zone plant-available water (USDA-NRCS values by texture), soil carbon stock and erodibility (EPIC K-factor)</td><td>250 m</td></tr>
     <tr><td>FAO Ecocrop / FAO-56, US land-grant extension guides</td><td>Crop thresholds: heat units, damaging temperatures, water need, pH range, nitrogen</td><td>Per crop</td></tr>
   </table>
   <p class="small muted">API calls for this field: <a href="${esc(state.powerUrl || '#')}" target="_blank" rel="noopener">NASA POWER request</a> · <a href="${esc(state.soilUrl || '#')}" target="_blank" rel="noopener">SoilGrids request</a></p>
@@ -668,7 +795,9 @@ function renderMethod(rows) {
     <li><b>Climate shift.</b> For every year we compute 8 farm-relevant indicators from daily NASA data. We compare the first 15 years (baseline) with the most recent 15 and test each trend with the non-parametric <b>Mann-Kendall test</b> and <b>Sen's slope</b>, the standard methods for climate trend detection.</li>
     <li><b>Crop outcome per year.</b> Each crop is "grown" in every year of real weather. We check whether it got enough growing degree days to mature, how many damaging-heat days hit its flowering window, whether rain plus stored soil water met its needs, frost and winterkill nights, and soil-pH fit. The result is a 0–100 outcome. A score of 70 or more counts as a good year.</li>
     <li><b>Rotation score.</b> Climate resilience blends the average crop outcome in recent years (65%) with the success rate of the rotation's <i>weakest</i> crop (35%), because a rotation is only as reliable as its weakest link. Any rotation containing a crop that meets its needs in under 10% of seasons is flagged ⛔ <i>not viable here</i> and heavily penalized. It is then penalized for years where the whole rotation struggled and for the worst single crop-year (tail risk). Soil health rewards plant-family diversity, mixing warm- and cool-season crops, legumes, living cover over winter, residue and perennials. Fertilizer need counts crop nitrogen demand minus legume credits. You set the weights.</li>
-    <li><b>Water.</b> Season water supply = rain + plant-available stored water (NASA GWETROOT × soil water capacity from SoilGrids texture). Evaporative demand uses FAO-56 Hargreaves reference evapotranspiration.</li>
+    <li><b>Farm-operations indicators.</b> Earliest planting day (5-day NASA soil-surface temperature ≥ 10°C and topsoil not saturated), spring field-work days (calibrated against USDA crop-progress norms, it picks out the record-wet 2019 spring), fungal-disease weather days (humidity ≥ 80% at 18–30°C) and hot nights.</li>
+    <li><b>Soil conservation.</b> Erosion uses the USDA RUSLE equation: rainfall erosivity from NASA annual rain (Renard & Freimund 1994), soil erodibility from SoilGrids (EPIC K), crop cover factors from USDA Handbook 703, and a gently sloping field (LS 0.3). Soil-carbon gains use published rates: cover crops +0.32 t C/ha/yr (Poeplau & Don 2015) and ≥3-crop rotations +0.20 t C/ha/yr (West & Post 2002).</li>
+    <li><b>Water.</b> Season water supply = rain + plant-available stored water (NASA GWETROOT × soil water capacity from SoilGrids texture). Evaporative demand is FAO-56 Penman-Monteith reference evapotranspiration, computed from NASA POWER radiation, humidity, wind and temperature.</li>
     <li><b>2050s.</b> NASA NEX-GDDP-CMIP6 monthly changes in Tmax, Tmin and rain from 3 climate models shift the real 35-year record (the standard "delta method"). We rank rotations under each model separately to show whether the recommendation is robust.</li>
   </ol>
 

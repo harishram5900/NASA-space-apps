@@ -9,6 +9,7 @@ const FILL = -999;
 /** Parse a NASA POWER daily point response into an array of day records. */
 export function parsePower(json, lat) {
   const p = json.properties.parameter;
+  const elev = json.geometry?.coordinates?.[2] ?? 200;
   const keys = Object.keys(p.T2M_MAX).sort();
   const days = [];
   for (const k of keys) {
@@ -26,7 +27,8 @@ export function parsePower(json, lat) {
       y: date.getUTCFullYear(), m: date.getUTCMonth() + 1, d: date.getUTCDate(),
       om: orig.getUTCMonth(), ra: extraterrestrialRadiation(lat, doy),
       tmax, tmin, prcp: Math.max(0, v('PRECTOTCORR') ?? 0), wet: v('GWETROOT'),
-      sun: v('ALLSKY_SFC_SW_DWN')
+      sun: v('ALLSKY_SFC_SW_DWN'), rh: v('RH2M'), ws: v('WS2M'), ts: v('TS'),
+      wetTop: v('GWETTOP'), wetProf: v('GWETPROF'), dew: v('T2MDEW'), z: elev
     });
   }
   return days;
@@ -41,10 +43,33 @@ export function extraterrestrialRadiation(latDeg, doy) {
   return ((24 * 60) / Math.PI) * 0.082 * dr * (ws * Math.sin(phi) * Math.sin(delta) + Math.cos(phi) * Math.cos(delta) * Math.sin(ws));
 }
 
-/** FAO-56 eq. 52 Hargreaves reference evapotranspiration (mm/day). */
+const satVP = (t) => 0.6108 * Math.exp((17.27 * t) / (t + 237.3)); // kPa, FAO-56 eq. 11
+
+/**
+ * Reference evapotranspiration ET0 (mm/day).
+ * FAO-56 Penman-Monteith (eq. 6) using NASA POWER solar radiation, humidity and
+ * wind; falls back to FAO-56 Hargreaves (eq. 52) when those are missing.
+ */
 export function et0(d) {
   const tmean = (d.tmax + d.tmin) / 2;
-  return Math.max(0, 0.0023 * 0.408 * d.ra * (tmean + 17.8) * Math.sqrt(Math.max(0, d.tmax - d.tmin)));
+  if (d.sun == null || d.ws == null || (d.dew == null && d.rh == null)) {
+    return Math.max(0, 0.0023 * 0.408 * d.ra * (tmean + 17.8) * Math.sqrt(Math.max(0, d.tmax - d.tmin)));
+  }
+  const z = d.z ?? 200;
+  const P = 101.3 * Math.pow((293 - 0.0065 * z) / 293, 5.26);           // eq. 7
+  const gamma = 0.000665 * P;                                            // eq. 8
+  const delta = (4098 * satVP(tmean)) / Math.pow(tmean + 237.3, 2);      // eq. 13
+  const es = (satVP(d.tmax) + satVP(d.tmin)) / 2;                        // eq. 12
+  const ea = d.dew != null ? Math.min(es, satVP(d.dew)) : (es * d.rh) / 100; // eq. 14 / 19
+  const rso = (0.75 + 2e-5 * z) * d.ra;                                  // eq. 37
+  const rns = 0.77 * d.sun;                                              // eq. 38, albedo 0.23
+  const ratio = Math.min(1, d.sun / Math.max(rso, 0.1));
+  const rnl = 4.903e-9 * ((Math.pow(d.tmax + 273.16, 4) + Math.pow(d.tmin + 273.16, 4)) / 2) *
+    (0.34 - 0.14 * Math.sqrt(Math.max(ea, 0))) * (1.35 * ratio - 0.35);  // eq. 39
+  const rn = rns - rnl;
+  const u2 = Math.max(0.5, d.ws);
+  const et = (0.408 * delta * rn + gamma * (900 / (tmean + 273)) * u2 * (es - ea)) / (delta + gamma * (1 + 0.34 * u2));
+  return Math.max(0, et);
 }
 
 /**
@@ -57,6 +82,8 @@ export function applyMonthlyDeltas(days, deltas) {
     ...d,
     tmax: d.tmax + deltas.dTmax[d.om],
     tmin: d.tmin + deltas.dTmin[d.om],
+    ts: d.ts == null ? null : d.ts + (deltas.dTmax[d.om] + deltas.dTmin[d.om]) / 2,
+    dew: d.dew == null ? null : d.dew + deltas.dTmin[d.om],
     prcp: d.prcp * deltas.pRatio[d.om]
   }));
 }
@@ -65,7 +92,8 @@ export function applyMonthlyDeltas(days, deltas) {
 export function applyScenario(days, dT = 0, rainPct = 0) {
   if (!dT && !rainPct) return days;
   const f = 1 + rainPct / 100;
-  return days.map((d) => ({ ...d, tmax: d.tmax + dT, tmin: d.tmin + dT, prcp: d.prcp * f }));
+  return days.map((d) => ({ ...d, tmax: d.tmax + dT, tmin: d.tmin + dT, ts: d.ts == null ? null : d.ts + dT,
+    dew: d.dew == null ? null : d.dew + dT, prcp: d.prcp * f }));
 }
 
 /** Group days by year; keep only complete years. */
@@ -130,11 +158,30 @@ export const INDICATORS = [
     why: 'Downpours delay planting, waterlog fields, wash away soil and leach nitrogen.' },
   { key: 'drySpell', label: 'Longest dry spell (May–Sep)', unit: 'days', good: 'down', dec: 0,
     why: 'The longest run of days with less than 1 mm of rain. Flash droughts start this way.' },
+  { key: 'plantDate', label: 'Earliest planting day (soil ≥ 10°C and workable)', unit: 'DOY', good: 'down', dec: 0,
+    why: 'First spring day when NASA soil-surface temperature has averaged ≥ 10°C for 5 days and the topsoil is not saturated. Corn and soybean can be planted from this day.' },
+  { key: 'workDays', label: 'Spring field-work days (Apr–May)', unit: 'days', good: 'up', dec: 0,
+    why: 'Days dry enough to run equipment: under 2 mm of rain and NASA surface soil wetness (GWETTOP) below 0.85. Calibrated so central Illinois averages ~32, close to USDA crop-progress reports. Fewer work days mean late planting.' },
+  { key: 'diseaseDays', label: 'Fungal-disease weather days (Jun–Aug)', unit: 'days', good: 'down', dec: 0,
+    why: 'Days with humidity ≥ 80% and 18–30°C, the conditions that favor leaf diseases such as gray leaf spot, tar spot and frogeye leaf spot.' },
+  { key: 'hotNights', label: 'Hot nights (Tmin ≥ 22°C, Jun–Aug)', unit: 'nights', good: 'down', dec: 1,
+    why: 'Warm nights make crops burn sugars through respiration. Hot nights during grain fill cut corn yield even when days are normal.' },
   { key: 'waterBalance', label: 'Water balance (rain − evaporative demand, Apr–Sep)', unit: 'mm', good: 'up', dec: 0,
     why: 'Rain minus FAO-56 reference evapotranspiration. Below zero, crops depend on stored soil water and every heat wave hurts more.' },
   { key: 'summerSoil', label: 'Summer root-zone wetness (Jul–Aug)', unit: '0–1', good: 'up', dec: 2,
     why: 'NASA GWETROOT (0 = completely dry, 1 = saturated) shows how much water roots can reach during the critical months.' }
 ];
+
+function plantingDay(days, doy) {
+  const spring = days.filter((d) => d.m >= 3 && d.m <= 6);
+  for (let i = 4; i < spring.length; i++) {
+    if (spring[i].m < 4) continue;
+    const win = spring.slice(i - 4, i + 1);
+    const t = win.map((d) => d.ts ?? (d.tmax + d.tmin) / 2);
+    if (mean(t) >= 10 && (spring[i].wetTop ?? spring[i].wet ?? 0) < 0.85 && spring[i].prcp < 5) return doy(spring[i]);
+  }
+  return null;
+}
 
 export function climateIndicators(years) {
   const out = [];
@@ -158,7 +205,11 @@ export function climateIndicators(years) {
       springDeluge: days.filter((d) => d.m >= 4 && d.m <= 6 && d.prcp >= 25).length,
       drySpell: longestDry(days.filter((d) => d.m >= 5 && d.m <= 9)),
       waterBalance: sum(days.filter((d) => d.m >= 4 && d.m <= 9).map((d) => d.prcp - et0(d))),
-      summerSoil: wetVals.length ? mean(wetVals) : null
+      summerSoil: wetVals.length ? mean(wetVals) : null,
+      plantDate: plantingDay(days, doy),
+      workDays: days.filter((d) => (d.m === 4 || d.m === 5) && d.prcp < 2 && (d.wetTop ?? d.wet ?? 0) < 0.85).length,
+      diseaseDays: days.filter((d) => d.m >= 6 && d.m <= 8 && d.rh != null && d.rh >= 80 && (d.tmax + d.tmin) / 2 >= 18 && (d.tmax + d.tmin) / 2 <= 30).length,
+      hotNights: days.filter((d) => d.m >= 6 && d.m <= 8 && d.tmin >= 22).length
     });
   }
   return out.sort((a, b) => a.year - b.year);

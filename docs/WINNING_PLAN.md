@@ -26,6 +26,7 @@ Space Apps projects are scored on **five criteria**: **Impact, Creativity, Valid
 | **Arcobaleno** (2023 Global Connection) | Sonification for people with visual impairments | 🔊 *Hear this trend*, plus read-aloud of the story |
 | **Global Connection** winners | Reach beyond one language or country | 🌐 Spanish story, presets on 4 continents, works anywhere on Earth |
 | **SpaceGenes+** (2025 Best Use of Science) | Rigorous, interactive dashboard for experts | Climate shift tab with p-values, 3-model robustness and reproducible scripts |
+| **Eco-Metropolis** (2024 Most Inspirational): a game built on real environmental data | 🎮 *2050 Farm Challenge*: 8 seasons of real NASA weather warmed to the 2050s |
 | **Two 2023 winners** on Moonquake Map | Interactive maps of real NASA data | Map with NASA GIBS MODIS, SMAP and SEDAC layers |
 
 ## 30-second pitch (memorize this)

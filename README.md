@@ -31,7 +31,11 @@ AgriHaven is a free web app. Click any field on Earth and it will:
 7. **Tell the field's story** in six data-driven chapters (the climate it was built for, the year everything went wrong, the new normal, the 2050s, a plan that holds) in **English or Spanish**, with **read-aloud**.
 8. **Check the season right now:** NASA POWER near-real-time data (~3-day latency) compared with the same dates in every year since 1991, turned into timely advice (plant, wait, irrigate, seed a cover crop).
 9. **Hear the data:** any climate trend can be played as sound (sonification) for accessibility.
-10. **Explain everything in plain language**, with a 60-second guided tour, a shareable field link and a printable farm report.
+10. **Farm-operations indicators** from 11 NASA POWER variables: earliest planting day (soil-surface temperature), spring field-work days, fungal-disease weather days and hot nights, plus FAO-56 Penman-Monteith evapotranspiration.
+11. **Soil conservation:** tonnes of topsoil lost per acre (USDA RUSLE with NASA rainfall and SoilGrids erodibility) and soil-carbon gained by each rotation, using a 1-metre SoilGrids soil profile.
+12. **🎮 The 2050 Farm Challenge:** play 8 seasons of 2050s weather (real NASA years warmed by NEX-GDDP-CMIP6), then see how you compare with AgriHaven's plan on the same weather.
+13. **🛰️ Season from space:** a MODIS NDVI time-lapse of the crop greening up and drying down, plus NASA layers for plant productivity (GPP), land surface temperature, land cover, SMAP soil moisture and GPM IMERG rainfall.
+14. **Explain everything in plain language**, with a 60-second guided tour, a shareable field link and a printable farm report.
 
 Satellite context layers from **NASA GIBS** (MODIS NDVI vegetation greenness, SMAP root-zone soil moisture, SEDAC croplands) show what's growing around the field right now.
 
@@ -39,7 +43,8 @@ Satellite context layers from **NASA GIBS** (MODIS NDVI vegetation greenness, SM
 
 | Dataset | Use |
 |---|---|
-| [NASA POWER](https://power.larc.nasa.gov/) Agroclimatology daily API (MERRA-2 / CERES / satellite) | T2M_MAX, T2M_MIN, PRECTOTCORR, GWETROOT, ALLSKY_SFC_SW_DWN, 1991–2025 |
+| [NASA POWER](https://power.larc.nasa.gov/) Agroclimatology daily API (MERRA-2 / CERES / satellite) | 11 variables, 1991–2025 + near-real-time: T2M_MAX, T2M_MIN, T2MDEW, RH2M, WS2M, ALLSKY_SFC_SW_DWN, PRECTOTCORR, TS, GWETTOP, GWETROOT, GWETPROF |
+| NASA GIBS: MODIS NDVI, MODIS GPP, MODIS LST, MODIS land cover, SMAP L4, GPM IMERG, SEDAC croplands | Map layers and the NDVI season time-lapse |
 | [NASA NEX-GDDP-CMIP6](https://www.nccs.nasa.gov/services/data-collections/land-based-products/nex-gddp-cmip6) v2.0 (NASA Center for Climate Simulation) | Daily downscaled Tmax, Tmin and precipitation, 3 models × SSP2-4.5 / SSP5-8.5, turned into monthly change factors (`tools/`) |
 | [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/): MODIS Terra NDVI 8-day | Current crop greenness map layer |
 | NASA GIBS: SMAP L4 root-zone soil moisture | Current soil moisture map layer |
@@ -51,7 +56,7 @@ Satellite context layers from **NASA GIBS** (MODIS NDVI vegetation greenness, SM
 
 ## Validation
 
-Without being tuned to any particular year, the model ranks **2012**, the historic US drought, among the two worst corn seasons in central Illinois. It also flags **2005**, a severe Illinois drought. The FAO-56 radiation code reproduces FAO's own worked example, and July reference ET in central Illinois comes out at 5–6 mm/day, as expected. `npm test` runs 13 automated checks covering the statistics, unit conversions, climate-model deltas, impact maths and scoring logic.
+The spring field-work-day indicator, calibrated only to USDA's typical average, independently finds **2019** (Illinois's record-wet, late-planting spring) with just 2 workable days and **2012** with 46. Without being tuned to any particular year, the model also ranks **2012**, the historic US drought, among the two worst corn seasons in central Illinois. It also flags **2005**, a severe Illinois drought. The FAO-56 radiation code reproduces FAO's own worked example, and July reference ET in central Illinois comes out at 5–6 mm/day, as expected. `npm test` runs 19 automated checks covering the statistics, unit conversions, climate-model deltas, impact maths and scoring logic.
 
 ### Rebuilding the NASA projections
 ```bash

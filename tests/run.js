@@ -5,6 +5,8 @@ import assert from 'node:assert/strict';
 import { parsePower, byYear, climateIndicators, indicatorSummary, cropReliability, mannKendall, applyScenario, applyMonthlyDeltas, et0, extraterrestrialRadiation } from '../js/analysis.js';
 import { impact } from '../js/impact.js';
 import { seasonNow } from '../js/now.js';
+import { erosivity, soilLoss } from '../js/conservation.js';
+import { newGame, playSeason, autoPlay } from '../js/game.js';
 import { buildStory } from '../js/story.js';
 import { scoreRotations, soilHealth, nitrogenNeed } from '../js/rotations.js';
 import { parseSoil } from '../js/api.js';
@@ -76,7 +78,7 @@ test('FAO-56 radiation and ET0 match textbook values', () => {
   assert.ok(Math.abs(extraterrestrialRadiation(-20, 246) - 32.2) < 0.3);
   const july = days.filter((d) => d.m === 7);
   const mean = july.reduce((s, d) => s + et0(d), 0) / july.length;
-  assert.ok(mean > 4 && mean < 7, `July ET0 ${mean}`); // central Illinois ~5-6 mm/day
+  assert.ok(mean > 4 && mean < 7, `July ET0 ${mean}`); // central Illinois ~4.5-6 mm/day
 });
 
 test('monthly climate-model deltas shift only the right month', () => {
@@ -123,6 +125,34 @@ test('field story: 2012 is the year everything went wrong, in English and Spanis
     assert.equal(ch.length, 5);
     assert.equal(ch[2].big, '2012');
   }
+});
+
+test('field-work days catch the record-wet 2019 spring and the dry 2012 spring', () => {
+  const rows = climateIndicators(years);
+  const wd = (y) => rows.find((r) => r.year === y).workDays;
+  const avg = rows.reduce((s, r) => s + r.workDays, 0) / rows.length;
+  assert.ok(avg > 25 && avg < 40, `avg ${avg}`);
+  assert.ok(wd(2019) <= 5, `2019 ${wd(2019)}`);
+  assert.ok(wd(2012) >= 40, `2012 ${wd(2012)}`);
+});
+
+test('Penman-Monteith ET0 is realistic for central Illinois', () => {
+  const y2020 = days.filter((d) => d.y === 2020).reduce((s, d) => s + et0(d), 0);
+  assert.ok(y2020 > 850 && y2020 < 1100, `annual ET0 ${y2020}`);
+});
+
+test('RUSLE: Illinois erosivity is realistic and cover crops cut soil loss', () => {
+  const R = erosivity(1000);
+  assert.ok(R > 3000 && R < 4000, `R ${R}`); // Illinois ~ 200 US units ≈ 3,400 SI
+  assert.ok(soil.kFactor > 0.01 && soil.kFactor < 0.06);
+  assert.ok(soilLoss(['corn+rye', 'soybean+rye'], R, soil.kFactor).tPerAc < soilLoss(['corn', 'soybean'], R, soil.kFactor).tPerAc);
+});
+
+test('2050 game: continuous corn loses to a diverse rotation on the same weather', () => {
+  const g = newGame(years, 7);
+  for (let i = 0; i < 8; i++) playSeason(g, { crop: 'corn' }, soil);
+  const diverse = autoPlay(years, g.seq, ['corn+rye', 'soybean+rye'], soil);
+  assert.ok(diverse.points > g.points && diverse.soil > g.soil);
 });
 
 console.log(`\n${passed} tests passed`);

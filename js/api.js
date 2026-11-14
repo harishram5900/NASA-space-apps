@@ -18,7 +18,7 @@ async function fetchJson(url, ms = 45000) {
   }
 }
 
-export const POWER_PARAMS = ['T2M_MAX', 'T2M_MIN', 'PRECTOTCORR', 'GWETROOT', 'ALLSKY_SFC_SW_DWN'];
+export const POWER_PARAMS = ['T2M_MAX', 'T2M_MIN', 'PRECTOTCORR', 'GWETROOT', 'ALLSKY_SFC_SW_DWN', 'RH2M', 'WS2M', 'TS', 'GWETTOP', 'GWETPROF', 'T2MDEW'];
 
 export function powerUrl(lat, lon, startYear, endYear) {
   const q = new URLSearchParams({
@@ -45,26 +45,50 @@ export async function getPower(lat, lon) {
 
 export function soilUrl(lat, lon) {
   const q = new URLSearchParams({ lon: lon.toFixed(4), lat: lat.toFixed(4), value: 'mean' });
-  for (const p of ['clay', 'sand', 'silt', 'soc', 'phh2o', 'cec']) q.append('property', p);
-  for (const d of ['0-5cm', '5-15cm', '15-30cm']) q.append('depth', d);
+  for (const p of ['clay', 'sand', 'silt', 'soc', 'phh2o', 'cec', 'nitrogen', 'bdod']) q.append('property', p);
+  for (const d of ['0-5cm', '5-15cm', '15-30cm', '30-60cm', '60-100cm']) q.append('depth', d);
   return `https://rest.isric.org/soilgrids/v2.0/properties/query?${q}`;
 }
 
-/** Parse SoilGrids into topsoil (0–30 cm, thickness-weighted) values in friendly units. */
+const THICK = { '0-5cm': 5, '5-15cm': 10, '15-30cm': 15, '30-60cm': 30, '60-100cm': 40 };
+const TOP = ['0-5cm', '5-15cm', '15-30cm'];
+
+/**
+ * Parse SoilGrids: topsoil (0–30 cm, thickness-weighted) properties in friendly units,
+ * plus a 0–100 cm root-zone profile used for plant-available water.
+ */
 export function parseSoil(json) {
-  const w = { '0-5cm': 5, '5-15cm': 10, '15-30cm': 15 };
-  const out = {};
+  const layers = {};
   for (const layer of json?.properties?.layers || []) {
-    let s = 0, n = 0;
+    layers[layer.name] = {};
     for (const d of layer.depths) {
       const v = d.values.mean;
-      if (v === null || v === undefined) continue;
-      s += (v / layer.unit_measure.d_factor) * w[d.label];
-      n += w[d.label];
+      if (v !== null && v !== undefined) layers[layer.name][d.label] = v / layer.unit_measure.d_factor;
     }
-    out[layer.name] = n ? s / n : null;
   }
+  const avg = (name, depths) => {
+    let s = 0, n = 0;
+    for (const dl of depths) {
+      const v = layers[name]?.[dl];
+      if (v == null) continue;
+      s += v * THICK[dl]; n += THICK[dl];
+    }
+    return n ? s / n : null;
+  };
+  const out = {};
+  for (const name of Object.keys(layers)) out[name] = avg(name, TOP);
   if (out.clay == null && out.sand == null) return null;
+  // Root-zone water: sum over 0–100 cm of each layer's texture-class AWC, scaled to 1.2 m roots.
+  let awc100 = 0, depthCovered = 0;
+  const profile = [];
+  for (const dl of Object.keys(THICK)) {
+    const sand = layers.sand?.[dl], clay = layers.clay?.[dl];
+    if (sand == null || clay == null) continue;
+    const tex = textureClass(sand, clay);
+    awc100 += AWC[tex] * THICK[dl] * 10; depthCovered += THICK[dl];
+    profile.push({ depth: dl, texture: tex, clay: Math.round(clay), sand: Math.round(sand), soc: layers.soc?.[dl] ?? null });
+  }
+  const awc = depthCovered ? Math.round((awc100 / depthCovered) * 120) : Math.round(AWC[textureClass(out.sand, out.clay)] * 1200);
   return {
     clay: out.clay,                                  // % (SoilGrids target units)
     sand: out.sand,
@@ -72,9 +96,29 @@ export function parseSoil(json) {
     soc: out.soc,                                    // g/kg
     ph: out.phh2o,
     cec: out.cec,                                    // cmol(c)/kg
+    nitrogen: out.nitrogen,                          // g/kg total N
+    bdod: out.bdod,                                  // g/cm³ bulk density
     texture: textureClass(out.sand, out.clay),
-    awc: Math.round(AWC[textureClass(out.sand, out.clay)] * 1200)  // mm in a 1.2 m root zone
+    awc,                                             // mm plant-available water, 1.2 m root zone
+    profile,
+    socStock: out.soc != null && out.bdod != null ? Math.round(out.soc * out.bdod * 30 / 10) : null, // t C/ha in 0–30 cm
+    kFactor: kFactor(out.sand, out.silt, out.clay, out.soc)
   };
+}
+
+/**
+ * Soil erodibility K (t·ha·h / (ha·MJ·mm)), EPIC equation (Williams 1995) as used
+ * in RUSLE work; inputs are topsoil sand/silt/clay (%) and organic carbon (g/kg).
+ */
+export function kFactor(sand, silt, clay, socGkg) {
+  if ([sand, silt, clay].some((x) => x == null)) return null;
+  const oc = (socGkg ?? 15) / 10; // %
+  const sn1 = 1 - sand / 100;
+  const fcsand = 0.2 + 0.3 * Math.exp(-0.256 * sand * (1 - silt / 100));
+  const fclsi = Math.pow(silt / (clay + silt), 0.3);
+  const forgc = 1 - (0.25 * oc) / (oc + Math.exp(3.72 - 2.95 * oc));
+  const fhisand = 1 - (0.7 * sn1) / (sn1 + Math.exp(-5.51 + 22.9 * sn1));
+  return 0.1317 * fcsand * fclsi * forgc * fhisand;
 }
 
 // Plant-available water (m³/m³) by USDA texture class, typical values from the
@@ -168,12 +212,26 @@ export async function getSample() {
 
 // NASA GIBS map layers (WMTS, Web Mercator)
 export const GIBS_LAYERS = {
-  ndvi: { id: 'MODIS_Terra_NDVI_8Day', matrix: 'GoogleMapsCompatible_Level9', maxNative: 9, label: 'Vegetation greenness (MODIS NDVI, 8-day)', daily: true },
-  soil: { id: 'SMAP_L4_Analyzed_Root_Zone_Soil_Moisture', matrix: 'GoogleMapsCompatible_Level6', maxNative: 6, label: 'Root-zone soil moisture (SMAP L4)', daily: true },
-  crops: { id: 'Agricultural_Lands_Croplands_2000', matrix: 'GoogleMapsCompatible_Level7', maxNative: 7, label: 'Croplands (SEDAC, 2000)', daily: false }
+  ndvi: { id: 'MODIS_Terra_NDVI_8Day', matrix: 'GoogleMapsCompatible_Level9', maxNative: 9, label: 'Crop greenness (MODIS NDVI)', when: 'peak' },
+  gpp: { id: 'MODIS_Terra_L4_Gross_Primary_Productivity_8Day', matrix: 'GoogleMapsCompatible_Level8', maxNative: 8, label: 'Plant growth / carbon uptake (MODIS GPP)', when: 'peak' },
+  lst: { id: 'MODIS_Terra_Land_Surface_Temp_Day', matrix: 'GoogleMapsCompatible_Level7', maxNative: 7, label: 'Land surface temperature (MODIS LST)', when: 'peak' },
+  soil: { id: 'SMAP_L4_Analyzed_Root_Zone_Soil_Moisture', matrix: 'GoogleMapsCompatible_Level6', maxNative: 6, label: 'Root-zone soil moisture (SMAP L4)', when: 'recent' },
+  rain: { id: 'IMERG_Precipitation_Rate', matrix: 'GoogleMapsCompatible_Level6', maxNative: 6, label: 'Rainfall (GPM IMERG)', when: 'recent' },
+  cover: { id: 'MODIS_Combined_L3_IGBP_Land_Cover_Type_Annual', matrix: 'GoogleMapsCompatible_Level8', maxNative: 8, label: 'Land cover (MODIS, 2024)', when: '2024-01-01' },
+  crops: { id: 'Agricultural_Lands_Croplands_2000', matrix: 'GoogleMapsCompatible_Level7', maxNative: 7, label: 'Croplands (SEDAC)', when: 'default' }
 };
 
+/** Resolve a layer's date: peak growing season, a few days ago, or a fixed date. */
+export function gibsDate(layer, now = new Date()) {
+  if (layer.when === 'peak') {
+    const y = now.getUTCMonth() >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+    return `${y}-07-28`;
+  }
+  if (layer.when === 'recent') return new Date(now.getTime() - 3 * 86400000).toISOString().slice(0, 10);
+  return layer.when;
+}
+
 export function gibsUrl(layer, date) {
-  const t = layer.daily ? date : 'default';
+  const t = date || gibsDate(layer);
   return `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${layer.id}/default/${t}/${layer.matrix}/{z}/{y}/{x}.png`;
 }
