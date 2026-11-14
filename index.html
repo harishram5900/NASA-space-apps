@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rotation Radar</title>
+  <meta name="description" content="Test-drive crop rotations against 35 years of NASA climate data for any field on Earth. NASA Space Apps 2026: Field Shift.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛰️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">🛰️</span>
+      <div>
+        <h1>Rotation Radar</h1>
+        <p class="tag">Test-drive your next crop rotation against 35 years of NASA climate data, before you plant it.</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button id="themeBtn" class="ghost" aria-label="Toggle dark mode">🌓</button>
+      <button id="printBtn" class="ghost">⬇️ Farm report</button>
+    </div>
+  </header>
+
+  <section class="steps" aria-label="How it works">
+    <div><b>1</b> Pick a field anywhere on Earth</div>
+    <div><b>2</b> See how its climate has really shifted</div>
+    <div><b>3</b> Compare rotations that hold up to the new normal</div>
+  </section>
+
+  <main class="layout">
+    <aside class="panel side">
+      <div class="card">
+        <h2>📍 Your field</h2>
+        <form id="searchForm" class="search">
+          <input id="searchInput" type="search" placeholder="Search a town, county or farm…" autocomplete="off">
+          <button type="submit">Go</button>
+        </form>
+        <ul id="searchResults" class="results" hidden></ul>
+        <div class="presets" id="presets"></div>
+        <div id="map" role="application" aria-label="Map: click to choose a field"></div>
+        <div class="layers" id="layers">
+          <span class="muted">NASA satellite layers:</span>
+        </div>
+        <p class="loc" id="locLabel">Click the map to choose a field.</p>
+        <div id="soilBox" class="soil"></div>
+      </div>
+
+      <div class="card">
+        <h2>🌡️ What-if future</h2>
+        <p class="muted small">Stress-test the rotations against a warmer, drier climate. Every NASA observation is shifted by these amounts.</p>
+        <label class="slider">Warming <output id="dTOut">+0.0 °C</output>
+          <input id="dT" type="range" min="0" max="3" step="0.5" value="0">
+        </label>
+        <label class="slider">Growing-season rain <output id="rainOut">0%</output>
+          <input id="rain" type="range" min="-30" max="20" step="5" value="0">
+        </label>
+      </div>
+
+      <div class="card">
+        <h2>⚖️ What matters to you</h2>
+        <label class="slider">Climate resilience <output id="wcOut">3</output>
+          <input id="wClimate" type="range" min="0" max="5" step="1" value="3">
+        </label>
+        <label class="slider">Soil health <output id="wsOut">2</output>
+          <input id="wSoil" type="range" min="0" max="5" step="1" value="2">
+        </label>
+        <label class="slider">Low fertilizer cost <output id="wiOut">1</output>
+          <input id="wInputs" type="range" min="0" max="5" step="1" value="1">
+        </label>
+      </div>
+    </aside>
+
+    <section class="panel main">
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <div id="headline" class="headline" hidden></div>
+
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-tab="rotations" aria-selected="true">🔄 Rotation planner</button>
+        <button role="tab" data-tab="climate">📈 Climate shift</button>
+        <button role="tab" data-tab="crops">🌾 Crop reliability</button>
+        <button role="tab" data-tab="method">🔬 Data &amp; method</button>
+      </nav>
+
+      <div class="tabpane" id="tab-rotations">
+        <div id="rotations"></div>
+        <div class="card builder">
+          <h3>🧪 Build your own rotation</h3>
+          <p class="muted small">Pick up to four years. Tick 🌱 to add a cereal rye cover crop after that crop.</p>
+          <div id="builder" class="builder-row"></div>
+          <button id="addCustom">Score my rotation</button>
+        </div>
+      </div>
+
+      <div class="tabpane" id="tab-climate" hidden>
+        <div id="indicators" class="indicators"></div>
+        <div class="card">
+          <div class="chart-head">
+            <h3 id="chartTitle">Indicator over time</h3>
+            <select id="indicatorSelect" aria-label="Choose indicator"></select>
+          </div>
+          <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+          <p class="muted small" id="chartNote"></p>
+        </div>
+      </div>
+
+      <div class="tabpane" id="tab-crops" hidden>
+        <p class="muted">Each square is one growing season, scored by how well that year's actual NASA-observed weather met the crop's needs for heat, water, frost and soil pH. <span class="pill good">≥70 good</span> <span class="pill mid">50–69 stressed</span> <span class="pill bad">&lt;50 failure risk</span></p>
+        <div id="cropTable"></div>
+      </div>
+
+      <div class="tabpane" id="tab-method" hidden>
+        <div class="card prose" id="methodText"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    Built for the <b>NASA Space Apps Challenge 2026</b>, challenge “Field Shift: Adapting Farms with NASA Data”, by Team Rotation Radar (Chicago).
+    Data: NASA POWER · NASA GIBS (MODIS, SMAP) · ISRIC SoilGrids. Not affiliated with or endorsed by NASA. Screening tool, not agronomic advice.
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

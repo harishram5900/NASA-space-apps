@@ -1,0 +1,62 @@
+# How we win: judging criteria → our plan
+
+Space Apps projects are scored on **five criteria**: **Impact, Creativity, Validity, Relevance, Presentation**. The official guide says to give presentation as much attention as the other four. Local judges in Chicago use them to choose the projects they nominate for **global judging**, where NASA and partner-agency experts pick 10 global winners.
+
+| Criterion | What judges look for | How Rotation Radar scores |
+|---|---|---|
+| **Impact** | Does it solve a real problem for real people at scale? | Any farmer on Earth, free, no login. Illinois has ~72,000 farms and corn → soybean covers most of the Corn Belt. Shows soil-health and fertilizer savings, not only climate risk. |
+| **Creativity** | Is it a fresh approach? | We don't just show climate charts. We "grow" every crop in each of 35 real NASA seasons and turn that into a reliability strip, then add what-if warming sliders and a build-your-own rotation. |
+| **Validity** | Is the science and data sound? Does it work? | Live NASA POWER + SMAP + MODIS + SoilGrids. Standard trend statistics (Mann-Kendall, Sen's slope) with p-values. The model independently flags the 2012 and 2005 droughts. Automated tests. A clear limitations section. |
+| **Relevance** | Does it address the challenge and use NASA data? | The challenge says to combine NASA Earth observations with soil and crop information for resilient crop rotations. That is exactly our pipeline. |
+| **Presentation** | Is the demo and story clear and compelling? | A 30-second story built around one farmer and one field, a live demo, and a polished, mobile-friendly UI with a printable farm report. |
+
+### Award categories we're targeting
+- **Best Use of Data**: in 2024, an agriculture app on this kind of challenge won exactly this.
+- **Galactic Impact**: also won by a 2024 farming app.
+- **Local Impact**: Illinois Corn Belt framing.
+
+---
+
+## 30-second pitch (memorize this)
+
+> "Every farmer in Illinois plans their crops on memories of a climate that's gone. NASA data shows Champaign County now gets about 150 more degree-days of heat and a frost-free season almost two weeks longer than in the 90s, and 2012 showed what one hot, dry summer does to corn.
+> **Rotation Radar** lets any farmer click their field, pulls 35 years of NASA POWER weather, NASA soil moisture and global soil data, and grows every crop in every one of those real seasons. It ranks rotations by climate resilience, soil health and fertilizer cost, in plain English. You can even turn up the heat to +2 °C and see which plan still holds.
+> It's free, works anywhere on Earth, and runs entirely on open NASA data."
+
+## 2-minute demo script
+
+1. **(0:00) Hook.** "This is Champaign County, about two hours from where we're standing." The app opens on it.
+2. **(0:15) Headline box.** Read the three NASA facts aloud: more heat, longer season, best rotation.
+3. **(0:30) Climate shift tab.** Click *Growing degree days* and point at the significant trend. Then click *Hot days*.
+4. **(0:50) Crop reliability tab.** "Each square is one real season. See 2012? Every crop goes red. Our model found that drought on its own." Point out that oats and pea are slipping as the climate warms.
+5. **(1:10) Rotation planner.** Show the #1 rotation vs today's corn → soybean and read the plain-language reasons.
+6. **(1:25) What-if.** Drag warming to +2 °C and watch the rankings change. "Sorghum and sunflower start pulling ahead."
+7. **(1:40) Go global.** Click *Córdoba, AR* or *Ukraine steppe*. "Same tool, anywhere on Earth."
+8. **(1:50) Close.** "Free, open NASA data, built in 30 hours. Rotation Radar."
+
+## Submission checklist (do by 2 h before the deadline)
+
+- [ ] Project page on spaceappschallenge.org: title, team, challenge = *Field Shift*
+- [ ] High-level summary (paste the pitch above)
+- [ ] **Link to the live demo** (deployed URL) and **this GitHub repo** (must be public)
+- [ ] Demo video or slides, within the length limit on the official submission guide (we target ≤ 30 s video or ≤ 7 slides)
+- [ ] List of NASA data and resources used (copy the table from the README)
+- [ ] Space agency partner data used (if any) and other data (SoilGrids)
+- [ ] Use of AI disclosure (see README)
+- [ ] Every team member registered on the Space Apps site and added to the team
+
+## Team split (5 people)
+
+| Who | Today | Tomorrow |
+|---|---|---|
+| **Atharv** (coder) | Learn `analysis.js` and `crops.js`, test 5–10 locations, tune any crop that looks wrong | Fix bugs, add one stretch feature |
+| **Dhishant** (coder) | Learn `app.js`, polish UI, check mobile | Deploy, final polish, record the screen capture |
+| **Teammate 3** | Agronomy check: are the crop thresholds and rotations realistic for Illinois? Find 2 extension sources | Validation slide (2012 drought) |
+| **Teammate 4** | Write the project page text and slides | Rehearse the pitch 5 times |
+| **Teammate 5** | Storyboard the video, interview a farmer or agronomist if you can (huge for Impact) | Edit the 30-second video, submit |
+
+## Stretch ideas (only if time remains)
+- Add USDA NASS county yields to show that model scores track real yield losses
+- Add a short-season corn variety and double-crop soybeans after wheat
+- Spanish / Hindi language toggle (Global Connection)
+- Share-a-field link (`?lat=…&lon=…`)
