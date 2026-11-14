@@ -1,20 +1,20 @@
 # AgriHaven: 5-minute pitch script
 
-**Team AgriHaven:** Harish · Dhishant · Giri · Atharv **Target:** about 4:30 (30-second buffer for laughs, pauses and clicks)
+**Team AgriHaven:** Harish · Dhishant · Giri · Atharv **Target:** about 4:20 (40-second buffer for laughs, pauses and clicks)
 
 | # | Rubric step | Time | Who | Screen |
 |---|---|---|---|---|
-| 01 | Hook | 0:00–0:30 | Harish | Slide 1 |
-| 02 | Problem | 0:30–0:55 | Giri | Slide 2 |
-| 03 | Solution | 0:55–1:15 | Atharv | Slide 3 |
-| 04 | Demo | 1:15–2:40 | Dhishant | Live app (backup: slides 4–5) |
-| 05 | The data | 2:40–3:10 | Giri | Slide 6 |
-| 06 | Impact | 3:10–3:45 | Atharv | Slide 7 |
-| 07 | Team + next | 3:45–4:30 | Harish → Giri → Harish → all four | Slide 7 |
+| 01 | Hook | 0:00–0:20 | Harish | Slide 1 |
+| 02 | Problem | 0:20–0:45 | Giri | Slide 2 |
+| 03 | Solution | 0:45–1:05 | Atharv | Slide 3 |
+| 04 | Demo | 1:05–2:30 | Dhishant | Live app (backup: slides 4–5) |
+| 05 | The data | 2:30–3:00 | Giri | Slide 6 |
+| 06 | Impact | 3:00–3:35 | Atharv | Slide 7 |
+| 07 | Team + next | 3:35–4:20 | Harish → Giri → Harish → all four | Slide 7 |
 
 ---
 
-## 01 · HOOK (Harish, 0:00–0:30) · Slide 1
+## 01 · HOOK (Harish, 0:00–0:20) · Slide 1
 
 > Quick question: who here checked the weather today? *(raise your own hand, pause)*
 >
@@ -24,19 +24,19 @@
 >
 > We’re **Team AgriHaven**. I’m Harish, and this is **Giri, Atharv and Dhishant**. We used NASA data to help farmers make that bet.
 
-## 02 · PROBLEM (Giri, 0:30–0:55) · Slide 2
+## 02 · PROBLEM (Giri, 0:20–0:45) · Slide 2
 
 > Farmers aren’t careless. They plan with the best information they have: their family’s experience. But NASA’s data shows that experience has quietly gone out of date.
 >
 > In Champaign County, the growing season now gets **148 more degree-days of heat** than in the ’90s, and the frost-free season is **12 days longer**. And when it goes wrong, it goes badly wrong: in **2012**, one hot, dry summer cut Illinois corn by **more than a third**.
 
-## 03 · SOLUTION (Atharv, 0:55–1:15) · Slide 3
+## 03 · SOLUTION (Atharv, 0:45–1:05) · Slide 3
 
 > So here’s our one sentence: **AgriHaven lets any farmer test-drive a crop rotation on NASA data, today and in the 2050s, before they plant it.**
 >
 > Pick a field, and we replay 35 real years of NASA weather on ten crops, then rank rotations by risk, soil health and cost, in plain English. Dhishant?
 
-## 04 · DEMO (Dhishant, 1:15–2:40) · Live app
+## 04 · DEMO (Dhishant, 1:05–2:30) · Live app
 
 *Keep it moving. Talk while you click.*
 
@@ -51,19 +51,19 @@
 5. **Compare & risk → click “2050s · high”**
    > “And here’s the decision. Corn-soybean looks safe today, but it uses the most fertilizer and loses the most soil. Jump to the 2050s with three NASA climate models: hot days almost triple. We don’t hide that uncertainty. We show it.”
 
-## 05 · THE DATA (Giri, 2:40–3:10) · Slide 6
+## 05 · THE DATA (Giri, 2:30–3:00) · Slide 6
 
 > Everything you just saw comes from NASA: **35 years of daily NASA POWER weather**, **NEX-GDDP-CMIP6** climate projections, and satellites: **MODIS, SMAP, NISAR, GPM**. We even turn satellite pixels back into real numbers for one single field.
 >
 > And we tested it: on its own, it finds the **2012 drought** and Illinois’s **soaking-wet 2019 spring**, when farmers had just two dry days to plant.
 
-## 06 · IMPACT (Atharv, 3:10–3:45) · Slide 7
+## 06 · IMPACT (Atharv, 3:00–3:35) · Slide 7
 
 > So who wins? Take one 500-acre farm. Switching to the rotation AgriHaven recommends saves about **$6,900 in fertilizer a year**, keeps **524 tonnes of topsoil** on the field, and stores **228 tonnes of CO₂** in the soil.
 >
 > The farmer saves money, the soil gets healthier, and it works for any field on Earth, free, even on a phone.
 
-## 07 · TEAM + NEXT (3:45–4:30) · Slide 7
+## 07 · TEAM + NEXT (3:35–4:20) · Slide 7
 
 **Harish (why us):**
 > So why us? All four of us have spent time in our grandparents’ villages, watching them farm. We saw how much depends on one guess about the weather, and how often that guess is now wrong. So we did the research, and we built the tool we wish they’d had.
