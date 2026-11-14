@@ -2,7 +2,7 @@
 
 Space Apps projects are scored on **five criteria**: **Impact, Creativity, Validity, Relevance, Presentation**. The official guide says to give presentation as much attention as the other four. Local judges in Chicago use them to choose the projects they nominate for **global judging**, where NASA and partner-agency experts pick 10 global winners.
 
-| Criterion | What judges look for | How Rotation Radar scores |
+| Criterion | What judges look for | How AgriHaven scores |
 |---|---|---|
 | **Impact** | Does it solve a real problem for real people at scale? | Any farmer on Earth, free, no login. Corn → soybean covers most of the Corn Belt. For each farm it shows fertilizer saved, dollars, tonnes of CO₂e and soil-health gains, plus a printable report and a shareable link for the farmer's agronomist or lender. |
 | **Creativity** | Is it a fresh approach? | We don't just show climate charts. We "grow" every crop in each of 35 real NASA seasons, then fast-forward that real weather to the 2050s with NASA climate models and re-rank under every model separately. There's also a build-your-own rotation and a farm-impact calculator. |
@@ -19,7 +19,7 @@ Space Apps projects are scored on **five criteria**: **Impact, Creativity, Valid
 
 ## What past global winners did, and what we borrowed
 
-| Past winner | What it did | What Rotation Radar does |
+| Past winner | What it did | What AgriHaven does |
 |---|---|---|
 | **2plant** (2024 Galactic Impact) and **Waterwise** (2024 Best Use of Data), both farming apps | Soil-moisture and ET data turned into in-season decisions for farmers | 📡 *Right now on this field*: live NASA POWER vs 35 years, with plant/wait/irrigate/cover-crop advice |
 | **TerraTales** (2024 Best Storytelling), **HerCode Space** (2025 Best Storytelling) | Data told as stories for non-experts | 📖 *Field story*: six chapters generated from the field's own NASA data |
@@ -31,7 +31,7 @@ Space Apps projects are scored on **five criteria**: **Impact, Creativity, Valid
 ## 30-second pitch (memorize this)
 
 > "Every farmer in Illinois plans their crops on memories of a climate that's gone. NASA data shows Champaign County now gets about 150 more degree-days of heat and a frost-free season almost two weeks longer than in the 90s, and 2012 showed what one hot, dry summer does to corn.
-> **Rotation Radar** lets any farmer click their field, pulls 35 years of NASA POWER weather, NASA soil moisture and global soil data, and grows every crop in every one of those real seasons. It ranks rotations by climate resilience, soil health and fertilizer cost, in plain English. Then it fast-forwards that same field to the 2050s with three NASA climate models and checks whether the plan still holds.
+> **AgriHaven** lets any farmer click their field, pulls 35 years of NASA POWER weather, NASA soil moisture and global soil data, and grows every crop in every one of those real seasons. It ranks rotations by climate resilience, soil health and fertilizer cost, in plain English. Then it fast-forwards that same field to the 2050s with three NASA climate models and checks whether the plan still holds.
 > It's free, works anywhere on Earth, and runs entirely on open NASA data."
 
 ## 2-minute demo script
@@ -43,13 +43,13 @@ Space Apps projects are scored on **five criteria**: **Impact, Creativity, Valid
 5. **(1:10) Rotation planner.** Show the #1 rotation vs today's corn → soybean and read the plain-language reasons.
 6. **(1:25) 2050s.** Click *2050s · high*. "Three NASA climate models fast-forward this exact field. Hot days nearly triple, and our top rotation stays in the top 2 under every model." Point at the impact cards: fertilizer, dollars, CO₂e.
 7. **(1:40) Go global.** Click *Córdoba, AR* or *Ukraine steppe*. "Same tool, anywhere on Earth."
-8. **(1:50) Close.** "Free, open NASA data, built in 30 hours. Rotation Radar."
+8. **(1:50) Close.** "Free, open NASA data, built in 30 hours. AgriHaven."
 
 ## Submission checklist (do by 2 h before the deadline)
 
 - [ ] Project page on spaceappschallenge.org: title, team, challenge = *Field Shift*
 - [ ] High-level summary (paste the pitch above)
-- [ ] **Link to the live demo**: https://rotationradar.vercel.app, plus **this GitHub repo** (must be public)
+- [ ] **Link to the live demo**: https://agri-haven.vercel.app, plus **this GitHub repo** (must be public)
 - [ ] Demo video or slides, within the length limit on the official submission guide (we target ≤ 30 s video or ≤ 7 slides)
 - [ ] List of NASA data and resources used (copy the table from the README)
 - [ ] Space agency partner data used (if any) and other data (SoilGrids)

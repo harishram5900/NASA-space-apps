@@ -117,10 +117,10 @@ $('#themeBtn').onclick = () => {
   const root = document.documentElement;
   const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
   root.dataset.theme = dark ? 'light' : 'dark';
-  try { localStorage.setItem('rr-theme', root.dataset.theme); } catch {}
+  try { localStorage.setItem('ah-theme', root.dataset.theme); } catch {}
   if (state.lastResult) drawChart();
 };
-try { const t = localStorage.getItem('rr-theme'); if (t) document.documentElement.dataset.theme = t; } catch {}
+try { const t = localStorage.getItem('ah-theme'); if (t) document.documentElement.dataset.theme = t; } catch {}
 $('#printBtn').onclick = () => window.print();
 
 // custom rotation builder
@@ -201,7 +201,7 @@ $('#shareBtn').onclick = async () => {
 
 // ---------------- guided tour ----------------
 const TOUR = [
-  { sel: '#map', tab: 'rotations', title: 'Pick any field on Earth', text: 'Click the map, search a town or use a preset. Rotation Radar downloads 35 years of daily NASA POWER weather and SoilGrids soil for that exact point. Toggle NASA satellite layers (MODIS greenness, SMAP soil moisture) to see current conditions.' },
+  { sel: '#map', tab: 'rotations', title: 'Pick any field on Earth', text: 'Click the map, search a town or use a preset. AgriHaven downloads 35 years of daily NASA POWER weather and SoilGrids soil for that exact point. Toggle NASA satellite layers (MODIS greenness, SMAP soil moisture) to see current conditions.' },
   { sel: '#nowCard', tab: 'story', title: 'Right now on this field', text: 'Live NASA POWER data (about 3 days behind real time) compared with the same dates in every year since 1991, turned into timely advice: plant, wait, irrigate or seed a cover crop.' },
   { sel: '#story', tab: 'story', title: 'The field\'s climate story', text: 'Six chapters, generated from the data: the climate this farm was built for, the year everything went wrong, the new normal, the 2050s and a plan that holds. Switch to Spanish or have it read aloud.' },
   { sel: '#headline', tab: 'rotations', title: 'The NASA story of this field', text: 'Plain-language facts: how much heat, frost-free season, downpours and hot days have changed since 1991, tested for statistical significance.' },
@@ -417,16 +417,16 @@ function renderNow() {
   if (!state.recent || !state.lastResult) { el.innerHTML = '<p class="muted small"><span class="spinner"></span>Checking this season against 35 years of NASA data…</p>'; return; }
   const n = seasonNow(state.recent, state.lastResult.obs, state.lat);
   if (!n) { el.innerHTML = ''; return; }
-  const gauge = (label, val, normal, p, unit, dec = 0) => `
+  const gauge = (label, val, normal, p, unit, dec = 0, lo = 'dry', hi = 'wet') => `
     <div class="gauge"><span>${label}</span><b>${fmt(val, dec)} ${unit} <span class="muted small">(normal ${fmt(normal, dec)})</span></b>
       <div class="track"><div class="dot" style="left:${p ?? 50}%"></div></div>
-      <div class="scale"><span>driest/coolest</span><span>${p === null ? '' : p >= 100 ? 'record high' : p <= 0 ? 'record low' : p + 'th percentile'}</span><span>wettest/warmest</span></div></div>`;
+      <div class="scale"><span>${lo}</span><span><b>${p === null ? '' : p >= 100 ? 'record high' : p <= 0 ? 'record low' : p + 'th pct'}</b></span><span>${hi}</span></div></div>`;
   el.innerHTML = `
     <h2>📡 Right now on this field <small>NASA POWER near-real-time, through ${esc(n.asOf)}, compared with the same dates in ${n.nYears} years</small></h2>
     <div class="gauges">
       ${gauge('Rain, last 30 days', n.rain30, n.rainNormal, n.rainPct, 'mm')}
       ${gauge('Root-zone soil wetness', n.wet7, n.wetNormal, n.wetPct, '', 2)}
-      ${gauge('Temperature, last 30 days', n.temp, n.tempNormal, n.tempPct, '°C', 1)}
+      ${gauge('Temperature, last 30 days', n.temp, n.tempNormal, n.tempPct, '°C', 1, 'cool', 'warm')}
     </div>
     <ul>${n.advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul>`;
 }

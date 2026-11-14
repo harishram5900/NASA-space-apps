@@ -52,7 +52,8 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
   background: linear-gradient(120deg, #061a40 0%, #0b3d91 55%, #1f6f3a 100%); color: #fff;
 }
 .brand { display: flex; gap: .8rem; align-items: center; }
-.logo { font-size: 2.2rem; }
+.logo { width: 56px; height: 56px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.35)); }
+.top h1 span { color: #b6ef8a; }
 .top h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; }
 .tag { margin: .2rem 0 0; opacity: .9; }
 .top .ghost { color: #fff; border-color: rgba(255,255,255,.4); }
@@ -256,6 +257,7 @@ details.more summary { cursor: pointer; color: var(--brand); font-size: .85rem; 
   background: linear-gradient(90deg, var(--bad) 0%, var(--mid) 20%, var(--surface) 20%, var(--surface) 80%, var(--mid) 80%, var(--bad) 100%); }
 .gauge .dot { position: absolute; top: -4px; width: 16px; height: 16px; border-radius: 50%; background: var(--brand); border: 2px solid var(--surface); transform: translateX(-50%); }
 .gauge .scale { display: flex; justify-content: space-between; font-size: .68rem; color: var(--muted); }
+.gauge .scale b { display: inline; font-size: .74rem; color: var(--text); }
 .now ul { margin: 0; padding-left: 1.1rem; }
 .chart-tools { display: flex; gap: .4rem; flex-wrap: wrap; }
 

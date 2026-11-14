@@ -3,15 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rotation Radar</title>
+  <title>AgriHaven</title>
   <meta name="description" content="Test-drive crop rotations against 35 years of NASA observations and NASA 2050s climate projections for any field on Earth. NASA Space Apps 2026: Field Shift.">
-  <meta property="og:title" content="Rotation Radar: crop rotations for a changing climate">
+  <meta property="og:title" content="AgriHaven: a safe haven for your farm in a changing climate">
   <meta property="og:description" content="35 years of NASA POWER weather + NASA NEX-GDDP-CMIP6 projections + SoilGrids soil → the crop rotation that holds up on your field.">
-  <meta property="og:image" content="https://rotationradar.vercel.app/og.png">
-  <meta property="og:url" content="https://rotationradar.vercel.app/">
+  <meta property="og:image" content="https://agri-haven.vercel.app/og.png">
+  <meta property="og:url" content="https://agri-haven.vercel.app/">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#0b3d91">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛰️</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -21,9 +22,9 @@
 <body>
   <header class="top">
     <div class="brand">
-      <span class="logo" aria-hidden="true">🛰️</span>
+      <img class="logo" src="assets/logo.svg" alt="" width="56" height="56">
       <div>
-        <h1>Rotation Radar</h1>
+        <h1>Agri<span>Haven</span></h1>
         <p class="tag">Test-drive your next crop rotation against 35 years of NASA observations and NASA climate projections for the 2050s, before you plant it.</p>
       </div>
     </div>
@@ -155,7 +156,7 @@
   <div id="toast" class="toast" role="status" hidden></div>
 
   <footer class="foot">
-    Built for the <b>NASA Space Apps Challenge 2026</b>, challenge “Field Shift: Adapting Farms with NASA Data”, by Team Rotation Radar (Chicago).
+    Built for the <b>NASA Space Apps Challenge 2026</b>, challenge “Field Shift: Adapting Farms with NASA Data”, by Team AgriHaven (Chicago).
     Data: NASA POWER · NASA NEX-GDDP-CMIP6 · NASA GIBS (MODIS, SMAP, SEDAC) · ISRIC SoilGrids. Not affiliated with or endorsed by NASA. Screening tool, not agronomic advice.
   </footer>
 

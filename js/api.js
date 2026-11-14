@@ -102,7 +102,7 @@ function textureClass(sand, clay) {
  * Topsoil for the field. SoilGrids masks cities and water, so if the exact point
  * has no soil we look a few km around it for the nearest mapped soil.
  */
-const soilKey = (lat, lon) => `rr-soil:${lat.toFixed(2)},${lon.toFixed(2)}`;
+const soilKey = (lat, lon) => `ah-soil:${lat.toFixed(2)},${lon.toFixed(2)}`;
 
 export async function getSoil(lat, lon) {
   // 1. Soil saved from an earlier visit (survives SoilGrids outages during a demo)

@@ -1,12 +1,14 @@
-# 🛰️ Rotation Radar
+<p align="center"><img src="assets/logo-wordmark-light.png" alt="AgriHaven" width="440"></p>
+
+# AgriHaven
 
 **Test-drive your next crop rotation against 35 years of NASA observations and NASA's 2050s climate projections, before you plant it.**
 
-NASA Space Apps Challenge 2026 · Challenge: **Field Shift: Adapting Farms with NASA Data** · Team Rotation Radar, Chicago
+NASA Space Apps Challenge 2026 · Challenge: **Field Shift: Adapting Farms with NASA Data** · Team AgriHaven, Chicago
 
-### 🌐 Live demo: **https://rotationradar.vercel.app**
+### 🌐 Live demo: **https://agri-haven.vercel.app**
 
-![Rotation Radar screenshot](og.png)
+![AgriHaven screenshot](og.png)
 
 ---
 
@@ -18,7 +20,7 @@ Farmers plan crop rotations from experience: "what worked for my parents." But t
 
 ## Our solution
 
-Rotation Radar is a free web app. Click any field on Earth and it will:
+AgriHaven is a free web app. Click any field on Earth and it will:
 
 1. **Download 35 years of daily NASA POWER weather** (1991–present) and **SoilGrids topsoil** data for that exact point.
 2. **Show how the climate has really shifted.** It covers 8 farm-relevant indicators (heat units, frost-free season, hot days, heavy spring rain, dry spells, NASA root-zone soil wetness and more), each tested for a statistically significant trend (Mann-Kendall + Sen's slope).
@@ -88,7 +90,7 @@ docs/               pitch, demo script, judging plan
 
 ## Limitations
 
-NASA POWER is a ~50 km grid, so it gives regional climate, not microclimate. The 2050s projections use 3 models × 2 sample years per period, precomputed for the preset regions; nearby fields (within ~600 km) use the nearest region. Crop thresholds are generic screening values. Scores compare options; they are not yield forecasts or financial advice. Rotation Radar helps a farmer start a conversation with their agronomist. It doesn't replace one.
+NASA POWER is a ~50 km grid, so it gives regional climate, not microclimate. The 2050s projections use 3 models × 2 sample years per period, precomputed for the preset regions; nearby fields (within ~600 km) use the nearest region. Crop thresholds are generic screening values. Scores compare options; they are not yield forecasts or financial advice. AgriHaven helps a farmer start a conversation with their agronomist. It doesn't replace one.
 
 ## Use of AI
 
