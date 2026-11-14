@@ -49,7 +49,7 @@ Space Apps projects are scored on **five criteria**: **Impact, Creativity, Valid
 
 - [ ] Project page on spaceappschallenge.org: title, team, challenge = *Field Shift*
 - [ ] High-level summary (paste the pitch above)
-- [ ] **Link to the live demo**: https://agri-haven.vercel.app, plus **this GitHub repo** (must be public)
+- [ ] **Link to the live demo**: https://agrihaven-nasa.vercel.app, plus **this GitHub repo** (must be public)
 - [ ] Demo video or slides, within the length limit on the official submission guide (we target ≤ 30 s video or ≤ 7 slides)
 - [ ] List of NASA data and resources used (copy the table from the README)
 - [ ] Space agency partner data used (if any) and other data (SoilGrids)

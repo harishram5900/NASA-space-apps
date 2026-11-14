@@ -6,7 +6,7 @@
 
 NASA Space Apps Challenge 2026 · Challenge: **Field Shift: Adapting Farms with NASA Data** · Team AgriHaven, Chicago
 
-### 🌐 Live demo: **https://agri-haven.vercel.app**
+### 🌐 Live demo: **https://agrihaven-nasa.vercel.app**
 
 ![AgriHaven screenshot](og.png)
 
