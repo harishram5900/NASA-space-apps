@@ -14,6 +14,7 @@ import { checkAzure, azureStatus, askAgriHaven } from './azure.js';
 import { conservation } from './conservation.js';
 import { newGame, playSeason, autoPlay, SEASON_COUNT } from './game.js';
 import { buildStory, storyStrings } from './story.js';
+import { initLanguagePicker, voiceLang, currentLang } from './i18n.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -687,6 +688,16 @@ function renderStory() {
   if (!speaking) $('#readBtn').textContent = L.read;
 }
 $('#langBtn').onclick = () => { stopSpeech(); state.lang = state.lang === 'en' ? 'es' : 'en'; renderStory(); };
+// Site language (header picker). The field story has its own hand-written Spanish;
+// for every other language the whole page is translated, so the story stays in English underneath.
+function syncSiteLang(lang) {
+  const site = lang !== 'en';
+  $('#langBtn').hidden = site;
+  if (site && state.lang !== 'en') { stopSpeech(); state.lang = 'en'; if ($('#story').children.length) renderStory(); }
+}
+document.addEventListener('agri:lang', (e) => syncSiteLang(e.detail));
+syncSiteLang(currentLang());
+initLanguagePicker();
 $('#storyCta').onclick = () => { showTab('rotations'); $('#tab-rotations').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 
 // read aloud (Web Speech API)
@@ -711,7 +722,7 @@ $('#readBtn').onclick = () => {
     el.classList.add('speaking');
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     const u = new SpeechSynthesisUtterance(`${el.querySelector('h3').textContent}. ${el.querySelector('p').textContent}`);
-    u.lang = state.lang === 'es' ? 'es-ES' : 'en-US';
+    u.lang = state.lang === 'es' ? 'es-ES' : voiceLang();
     u.rate = 1.02;
     u.onend = next;
     u.onerror = next;

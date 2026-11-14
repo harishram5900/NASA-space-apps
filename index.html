@@ -24,15 +24,16 @@
     <div class="brand">
       <img class="logo" src="assets/logo.svg" alt="" width="56" height="56">
       <div>
-        <h1>Agri<span>Haven</span></h1>
+        <h1 class="notranslate" translate="no">Agri<span>Haven</span></h1>
         <p class="tag">Test-drive your next crop rotation against 35 years of NASA observations and NASA climate projections for the 2050s, before you plant it.</p>
       </div>
     </div>
-    <button type="button" class="fieldchip" id="fieldChip" aria-label="Change field">📍 <span id="fieldChipName">Pick a field</span></button>
+    <button type="button" class="fieldchip" id="fieldChip" aria-label="Change field">📍 <span id="fieldChipName" class="notranslate" translate="no">Pick a field</span></button>
     <div class="top-actions">
       <button id="tourBtn" class="ghost">▶ 60-second tour</button>
       <button id="shareBtn" class="ghost">🔗 Share field</button>
       <button id="printBtn" class="ghost">⬇️ Farm report</button>
+      <label class="langpick notranslate" translate="no" title="Language"><span aria-hidden="true">🌐</span><select data-langpick aria-label="Language"></select></label>
       <button id="themeBtn" class="ghost" aria-label="Toggle dark mode">🌓</button>
     </div>
   </header>
@@ -46,7 +47,7 @@
   <!-- Landing: full-screen map. The map block moves into the Map tab once a field is picked. -->
   <section id="landing" class="landing" aria-label="Choose your field">
     <div id="mapBlock" class="mapblock">
-      <div id="map" role="application" aria-label="Map: click to choose a field"></div>
+      <div id="map" class="notranslate" translate="no" role="application" aria-label="Map: click to choose a field"></div>
       <div class="pickcard" id="pickCard">
         <h2 id="pickTitle">🌍 Where's your field?</h2>
         <p class="small muted" id="pickHint">Click anywhere on the map, search for a place, or try a preset. AgriHaven then pulls 35 years of NASA data for that exact spot.</p>
@@ -54,7 +55,7 @@
           <input id="searchInput" type="search" placeholder="Search a town, county or farm…" autocomplete="off">
           <button type="submit">Go</button>
         </form>
-        <ul id="searchResults" class="results" hidden></ul>
+        <ul id="searchResults" class="results notranslate" translate="no" hidden></ul>
         <div class="presets" id="presets"></div>
         <details class="layerbox" open><summary>🛰️ NASA satellite layers</summary>
           <div class="layers" id="layers"></div>
@@ -67,7 +68,7 @@
     <aside class="panel side">
       <div class="card">
         <h2>📍 Your field</h2>
-        <p class="loc" id="locLabel">Click the map to choose a field.</p>
+        <p class="loc notranslate" translate="no" id="locLabel">Click the map to choose a field.</p>
         <button type="button" class="ghost" id="changeField">🗺️ Change field on the map</button>
         <div id="soilBox" class="soil" style="margin-top:.6rem"></div>
       </div>
@@ -211,6 +212,7 @@
       <button type="button" data-act="print"><span aria-hidden="true">⬇️</span>Farm report</button>
       <button type="button" data-act="theme"><span aria-hidden="true">🌓</span>Dark / light</button>
     </div>
+    <label class="sheet-lang notranslate" translate="no"><span aria-hidden="true">🌐</span><span class="sr">Language</span><select data-langpick aria-label="Language"></select></label>
     <button type="button" class="ghost sheet-close" id="sheetClose">Close</button>
   </div>
 

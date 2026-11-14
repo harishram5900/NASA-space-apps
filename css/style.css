@@ -493,3 +493,19 @@ details.more summary { cursor: pointer; color: var(--brand); font-size: .85rem; 
   .card, .rot, .croprow { break-inside: avoid; box-shadow: none; }
   .strip div, .bar > div, .pill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* ---------- language picker (js/i18n.js) ---------- */
+.langpick { display: inline-flex; align-items: center; gap: .3rem; border: 1px solid rgba(255,255,255,.4); border-radius: 10px; padding: 0 .4rem; color: #fff; }
+.langpick select { background: transparent; color: #fff; border: 0; font: inherit; font-size: .9rem; max-width: 9.5rem; padding: .45rem .1rem; cursor: pointer; }
+.langpick select:focus-visible { outline: 2px solid #b6ef8a; outline-offset: 2px; border-radius: 6px; }
+.langpick option, .langpick optgroup, .sheet-lang option, .sheet-lang optgroup { color: #0b1a33; background: #fff; }
+.sheet-lang { display: flex; align-items: center; gap: .5rem; margin: .6rem 0 .2rem; padding: .55rem .8rem; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
+.sheet-lang select { flex: 1; min-width: 0; background: transparent; color: var(--text, inherit); border: 0; font: inherit; padding: .3rem 0; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 700px) { .langpick select { max-width: 6.5rem; font-size: .8rem; } }
+/* hide the translator's own toolbar, tooltip and highlight */
+#gtHost, .skiptranslate iframe, iframe.skiptranslate, .goog-te-banner-frame, #goog-gt-tt, .goog-te-balloon-frame, .VIpgJd-ZVi9od-ORHb-OEVmcd, .VIpgJd-ZVi9od-aZ2wEe-wOHMyf { display: none !important; }
+body { top: 0 !important; position: static; }
+.goog-text-highlight, font[style*="background-color"] { background: none !important; box-shadow: none !important; }
+/* right-to-left languages: mirror reading areas only */
+body.rtl-text .tabpane p, body.rtl-text .chapter, body.rtl-text .card p, body.rtl-text h2, body.rtl-text h3, body.rtl-text li { direction: rtl; text-align: right; }
