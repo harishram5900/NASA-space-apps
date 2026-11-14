@@ -4,8 +4,8 @@
 
 | # | Rubric step | Time | Who | Screen |
 |---|---|---|---|---|
-| 01 | Hook | 0:00–0:30 | Giri | Slide 1 |
-| 02 | Problem | 0:30–0:55 | Harish | Slide 2 |
+| 01 | Hook | 0:00–0:30 | Harish | Slide 1 |
+| 02 | Problem | 0:30–0:55 | Giri | Slide 2 |
 | 03 | Solution | 0:55–1:15 | Atharv | Slide 3 |
 | 04 | Demo | 1:15–2:40 | Dhishant | Live app (backup: slides 4–5) |
 | 05 | The data | 2:40–3:10 | Giri | Slide 6 |
@@ -14,7 +14,7 @@
 
 ---
 
-## 01 · HOOK (Giri, 0:00–0:30) · Slide 1
+## 01 · HOOK (Harish, 0:00–0:30) · Slide 1
 
 > Farming is the only job where your most important coworker, the weather, never shows up to meetings, ignores every email, and changes the rules every single year. *(beat, let them laugh)*
 >
@@ -22,11 +22,11 @@
 >
 > It’s the satellite. NASA can see how green that field is, how wet its soil is, and exactly how much hotter it’s gotten since the ’90s. The farmer just never gets to see any of it.
 >
-> We’re **Team AgriHaven**: I’m Giri, and this is **Harish, Atharv and Dhishant**. And we turned NASA’s satellites into a farm advisor.
+> We’re **Team AgriHaven**: I’m Harish, and this is **Giri, Atharv and Dhishant**. And we turned NASA’s satellites into a farm advisor.
 
 > Every claim is true: NASA’s MODIS and SMAP satellites orbit about 685–705 km up, and AgriHaven shows each field’s greenness (NDVI), soil moisture and warming since the 1990s.
 
-## 02 · PROBLEM (Harish, 0:30–0:55) · Slide 2
+## 02 · PROBLEM (Giri, 0:30–0:55) · Slide 2
 
 > Farmers aren’t careless. They plan with the best information they have: their family’s experience. But NASA’s data shows that experience has quietly gone out of date.
 >
@@ -80,7 +80,7 @@
 
 ## Tips for delivery
 
-- **The hook lives on two pauses:** after the coworker joke (let them laugh), and after the satellite question (look at the judges and let them think). Giri should know it by heart.
+- **The hook lives on two pauses:** after the coworker joke (let them laugh), and after the satellite question (look at the judges and let them think). Harish should know it by heart.
 - **The slogan is the last thing the judges hear.** Say it slowly, pause after “decisions”, then “That’s AgriHaven.”
 - **Talk to the judges, not the screen.** Dhishant: glance at the screen, then face the room.
 - **Pre-load Champaign** in the demo tab 5 minutes before you go up, so it loads instantly.
