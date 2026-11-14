@@ -85,7 +85,10 @@ export function scoreRotations(years, soil, weights, list = ROTATIONS) {
     // Worst single crop-year in the recent period (tail risk).
     const worst = Math.min(...parsed.map((p) => Math.min(...rel[p.crop].results.filter((r) => recent.includes(r.year)).map((r) => r.score))));
     const coverPenalty = parsed.some((p) => p.cover) && coverRecent < 70 ? (70 - coverRecent) / 4 : 0;
-    const climateScore = Math.max(0, climate - coverPenalty - badYears.length * 1.5 + (worst - 50) * 0.1);
+    // A rotation is only as reliable as its weakest crop: blend the average outcome
+    // with the success rate of the least reliable crop.
+    const weakest = Math.min(...parsed.map((p) => rel[p.crop].recent.goodPct));
+    const climateScore = Math.max(0, 0.65 * climate + 0.35 * weakest - coverPenalty - badYears.length * 1.5 + (worst - 50) * 0.1);
 
     const sh = soilHealth(rot.steps);
     const n = nitrogenNeed(rot.steps);
@@ -102,17 +105,20 @@ export function scoreRotations(years, soil, weights, list = ROTATIONS) {
 }
 
 /** Plain-language explanation for a rotation result. */
-export function explain(r, rel, baseline, nRecent = 15) {
+export function explain(r, rel, baseline, nRecent = 15, future = false) {
+  const yrs = future ? `of ${nRecent} simulated 2050s seasons` : 'of recent years';
   const lines = [];
   const crops = [...new Set(r.parsed.map((p) => p.crop))];
   const stressWords = { heat: 'summer heat', dry: 'drought', cool: 'too little season heat', frost: 'frost or winterkill', wet: 'waterlogging', soil: 'soil pH' };
   const resilient = crops.filter((k) => rel[k].recent.goodPct >= 80);
   const fragile = crops.filter((k) => rel[k].recent.goodPct < 65);
   const declining = crops.filter((k) => rel[k].recent.goodPct >= 65 && rel[k].recent.goodPct - rel[k].base.goodPct <= -15);
-  if (resilient.length) lines.push(`✅ ${resilient.map((k) => CROPS[k].name).join(', ')} succeeded in ≥80% of recent years at this location.`);
-  for (const k of fragile) lines.push(`⚠️ ${CROPS[k].name} hit its targets in only ${Math.round(rel[k].recent.goodPct)}% of recent years. The main cause was ${stressWords[rel[k].mainStress] || 'mixed stresses'}.`);
+  if (resilient.length) lines.push(`✅ ${resilient.map((k) => CROPS[k].name).join(', ')} succeeded in ≥80% ${yrs} at this location.`);
+  for (const k of fragile) lines.push(`⚠️ ${CROPS[k].name} hit its targets in only ${Math.round(rel[k].recent.goodPct)}% ${yrs}. The main cause was ${stressWords[rel[k].mainStress] || 'mixed stresses'}.`);
   for (const k of declining) lines.push(`↘️ ${CROPS[k].name} is slipping: it succeeded in ${Math.round(rel[k].base.goodPct)}% of baseline years but only ${Math.round(rel[k].recent.goodPct)}% recently.`);
-  if (r.badYears.length) lines.push(`📉 In ${r.badYears.length} of the last ${nRecent} years the rotation as a whole had a poor season (${r.badYears.join(', ')}).`);
+  if (r.badYears.length) lines.push(future
+    ? `📉 ${r.badYears.length} of ${nRecent} simulated 2050s seasons were poor for the rotation as a whole (today's ${r.badYears.join(', ')} weather, made warmer).`
+    : `📉 In ${r.badYears.length} of the last ${nRecent} years the rotation as a whole had a poor season (${r.badYears.join(', ')}).`);
   else lines.push('🛡️ No recent year was poor for the rotation as a whole, because the crops spread the risk.');
   if (r.soil.parts.legume > 0) lines.push(`🌱 Legumes supply nitrogen, so fertilizer need is about ${Math.round(r.nNeed * 100)}% of continuous corn.`);
   if (r.parsed.some((p) => p.cover)) lines.push(`🧥 A rye cover crop established in ${Math.round(r.coverRecent)}% of fall conditions (by NASA temperature and rain), protecting soil from spring downpours.`);

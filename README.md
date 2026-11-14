@@ -4,6 +4,10 @@
 
 NASA Space Apps Challenge 2026 · Challenge: **Field Shift: Adapting Farms with NASA Data** · Team Rotation Radar, Chicago
 
+### 🌐 Live demo: **https://rotationradar.vercel.app**
+
+![Rotation Radar screenshot](og.png)
+
 ---
 
 ## The problem

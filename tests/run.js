@@ -55,9 +55,12 @@ test('soil health: diverse rotation beats continuous corn', () => {
   assert.ok(nitrogenNeed(['corn', 'soybean']) < nitrogenNeed(['corn']));
 });
 
-test('rotation ranking is complete and continuous corn ranks last on soil-weighted priorities', () => {
+test('rotation ranking: continuous corn near the bottom, cold-climate canola rotation not favored in Illinois', () => {
   const { scored } = scoreRotations(years, soil, { climate: 3, soil: 2, inputs: 1 });
-  assert.equal(scored.at(-1).id, 'cc');
+  const rank = (id) => scored.findIndex((r) => r.id === id);
+  assert.ok(rank('cc') >= scored.length - 2);
+  assert.ok(rank('cc') > rank('cs'));
+  assert.ok(rank('wcp') > rank('cs-rye'));
   assert.ok(scored.every((r) => r.total >= 0 && r.total <= 100));
 });
 
