@@ -138,14 +138,11 @@ NASA POWER is a ~50 km grid, so it gives regional climate, not microclimate. The
 
 AI coding assistants helped write the code and documentation. All data comes from the cited sources, and the team reviewed the model logic and results.
 
-## Team
+## Team AgriHaven (NASA Space Apps Chicago 2026)
 
-| Name | Role |
-|---|---|
-| Atharv | Lead developer: data pipeline and analysis |
-| Dhishant | Lead developer: UI, map and charts |
-| _teammate_ | Agronomy research and validation |
-| _teammate_ | Story, slides and project page |
-| _teammate_ | Demo video and design |
+- **Harish Ramasubramanian**
+- **Dhishant Kishorekumar**
+- **Giridhar Krishnan**
+- **Atharv Patel**
 
 *Not affiliated with or endorsed by NASA.*
