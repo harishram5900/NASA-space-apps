@@ -88,16 +88,20 @@ export function scoreRotations(years, soil, weights, list = ROTATIONS) {
     // A rotation is only as reliable as its weakest crop: blend the average outcome
     // with the success rate of the least reliable crop.
     const weakest = Math.min(...parsed.map((p) => rel[p.crop].recent.goodPct));
-    const climateScore = Math.max(0, 0.65 * climate + 0.35 * weakest - coverPenalty - badYears.length * 1.5 + (worst - 50) * 0.1);
+    const badFrac = rec.length ? badYears.length / rec.length : 0;
+    const climateScore = Math.max(0, Math.min(100, 0.65 * climate + 0.35 * weakest - coverPenalty - badFrac * 15 + (worst - 50) * 0.08));
 
     const sh = soilHealth(rot.steps);
     const n = nitrogenNeed(rot.steps);
     const inputs = Math.max(0, 100 - n * 100);
 
-    const total = (w.climate * climateScore + w.soil * sh.score + w.inputs * inputs) / wsum;
+    // Viability gate: no farmer plants a crop that fails in >90% of seasons.
+    const notViable = [...new Set(parsed.map((p) => p.crop))].filter((k) => rel[k].recent.goodPct < 10);
+    let total = (w.climate * climateScore + w.soil * sh.score + w.inputs * inputs) / wsum;
+    if (notViable.length) total *= 0.6;
     return {
       ...rot, parsed, total, climate: climateScore, climateRaw: climate, climateBase, climateChange: climate - climateBase,
-      soil: sh, inputs, nNeed: n, badYears, worst, coverRecent
+      soil: sh, inputs, nNeed: n, badYears, worst, coverRecent, notViable
     };
   });
   scored.sort((a, b) => b.total - a.total);
@@ -110,6 +114,7 @@ export function explain(r, rel, baseline, nRecent = 15, future = false) {
   const lines = [];
   const crops = [...new Set(r.parsed.map((p) => p.crop))];
   const stressWords = { heat: 'summer heat', dry: 'drought', cool: 'too little season heat', frost: 'frost or winterkill', wet: 'waterlogging', soil: 'soil pH' };
+  if (r.notViable?.length) lines.push(`⛔ Not viable here: ${r.notViable.map((k) => CROPS[k].name).join(', ')} met ${r.notViable.length > 1 ? 'their' : 'its'} needs in under 10% ${yrs}.`);
   const resilient = crops.filter((k) => rel[k].recent.goodPct >= 80);
   const fragile = crops.filter((k) => rel[k].recent.goodPct < 65);
   const declining = crops.filter((k) => rel[k].recent.goodPct >= 65 && rel[k].recent.goodPct - rel[k].base.goodPct <= -15);
