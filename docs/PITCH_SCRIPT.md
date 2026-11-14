@@ -4,12 +4,12 @@
 
 | # | Rubric step | Time | Who | Screen |
 |---|---|---|---|---|
-| 01 | Hook (skit) | 0:00–0:30 | Harish · Giri · Dhishant | Slide 1 |
+| 01 | Hook (skit) | 0:00–0:30 | Harish · Giri · Atharv | Slide 1 |
 | 02 | Problem | 0:30–0:55 | Harish | Slide 2 |
-| 03 | Solution | 0:55–1:15 | Dhishant | Slide 3 |
-| 04 | Demo | 1:15–2:40 | Atharv | Live app (backup: slides 4–5) |
+| 03 | Solution | 0:55–1:15 | Atharv | Slide 3 |
+| 04 | Demo | 1:15–2:40 | Dhishant | Live app (backup: slides 4–5) |
 | 05 | The data | 2:40–3:10 | Giri | Slide 6 |
-| 06 | Impact | 3:10–3:45 | Dhishant | Slide 7 |
+| 06 | Impact | 3:10–3:45 | Atharv | Slide 7 |
 | 07 | Team + next | 3:45–4:30 | Harish → Giri → Harish | Slide 7 |
 
 ---
@@ -28,7 +28,7 @@
 
 **Harish** *(slowly lowers the bag, to the judges)*: …Nobody told me.
 
-**Dhishant** *(steps forward)*: Every year, farmers make this exact bet, with rules written for a climate that doesn’t exist anymore. We’re **Team AgriHaven**: I’m Dhishant, and this is **Harish, Giri and Atharv**. And we built the thing that tells them.
+**Atharv** *(steps forward)*: Every year, farmers make this exact bet, with rules written for a climate that doesn’t exist anymore. We’re **Team AgriHaven**: I’m Atharv, and this is **Harish, Giri and Dhishant**. And we built the thing that tells them.
 
 > The weather lines are real: NASA data for Champaign County shows its warmest 30 days on record for this time of year (5 °C above normal) with less than half the normal rain (38 mm vs 84 mm).
 
@@ -38,13 +38,13 @@
 >
 > In Champaign County, the growing season now gets **148 more degree-days of heat** than in the ’90s, and the frost-free season is **12 days longer**. And when it goes wrong, it goes badly wrong: in **2012**, one hot, dry summer cut Illinois corn by **more than a third**.
 
-## 03 · SOLUTION (Dhishant, 0:55–1:15) · Slide 3
+## 03 · SOLUTION (Atharv, 0:55–1:15) · Slide 3
 
 > So here’s our one sentence: **AgriHaven lets any farmer test-drive a crop rotation on NASA data, today and in the 2050s, before they plant it.**
 >
-> Pick a field, and we replay 35 real years of NASA weather on ten crops, then rank rotations by risk, soil health and cost, in plain English. Atharv?
+> Pick a field, and we replay 35 real years of NASA weather on ten crops, then rank rotations by risk, soil health and cost, in plain English. Dhishant?
 
-## 04 · DEMO (Atharv, 1:15–2:40) · Live app
+## 04 · DEMO (Dhishant, 1:15–2:40) · Live app
 
 *Keep it moving. Talk while you click.*
 
@@ -65,7 +65,7 @@
 >
 > And we tested it: on its own, it finds the **2012 drought** and Illinois’s **soaking-wet 2019 spring**, when farmers had just two dry days to plant.
 
-## 06 · IMPACT (Dhishant, 3:10–3:45) · Slide 7
+## 06 · IMPACT (Atharv, 3:10–3:45) · Slide 7
 
 > So who wins? Take one 500-acre farm. Switching to the rotation AgriHaven recommends saves about **$6,900 in fertilizer a year**, keeps **524 tonnes of topsoil** on the field, and stores **228 tonnes of CO₂** in the soil.
 >
@@ -88,7 +88,7 @@
 
 - **The skit lives on timing.** Let Giri’s “I don’t read calendars” land and pause for a beat. Harish’s “…Nobody told me” should be quiet and sincere. Practise the skit 5+ times.
 - **Props:** one paper bag with “CORN” written on it. That’s all you need. Bringing it back for the final line ties the pitch together.
-- **Talk to the judges, not the screen.** Atharv: glance at the screen, then face the room.
+- **Talk to the judges, not the screen.** Dhishant: glance at the screen, then face the room.
 - **Pre-load Champaign** in the demo tab 5 minutes before you go up, so it loads instantly.
 - **If the Wi-Fi fails:** switch to slides 4–5 and say the same demo lines.
 - **If you run long:** cut demo step 3 (2012) first, then the last sentence of Impact.
@@ -98,7 +98,7 @@
 | Question | Who | Answer |
 |---|---|---|
 | How do you know it’s right? | Giri | It finds the 2012 drought and the 2019 wet spring without being tuned to them, uses standard science methods (FAO, USDA), and has 31 automated tests. |
-| Why would a farmer trust it? | Dhishant | It explains every score in plain language and shows its data sources. It helps a farmer think and talk to their agronomist; it doesn’t replace them. |
-| What about uncertainty? | Atharv | We run three separate NASA climate models and show the range, so the uncertainty is visible, not hidden. |
-| Does it work outside Illinois? | Atharv | Any field on Earth. Detailed 2050s projections are ready for seven farming regions on four continents. |
+| Why would a farmer trust it? | Atharv | It explains every score in plain language and shows its data sources. It helps a farmer think and talk to their agronomist; it doesn’t replace them. |
+| What about uncertainty? | Dhishant | We run three separate NASA climate models and show the range, so the uncertainty is visible, not hidden. |
+| Does it work outside Illinois? | Dhishant | Any field on Earth. Detailed 2050s projections are ready for seven farming regions on four continents. |
 | What was hardest? | Harish | Turning satellite colours back into real numbers, and making all of it simple enough for a farmer. |
