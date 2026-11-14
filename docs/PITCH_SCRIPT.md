@@ -10,21 +10,19 @@
 | 04 | Demo | 1:15–2:40 | Dhishant | Live app (backup: slides 4–5) |
 | 05 | The data | 2:40–3:10 | Giri | Slide 6 |
 | 06 | Impact | 3:10–3:45 | Atharv | Slide 7 |
-| 07 | Team + next | 3:45–4:30 | Harish → Giri → Harish | Slide 7 |
+| 07 | Team + next | 3:45–4:30 | Harish → Giri → Harish → all four | Slide 7 |
 
 ---
 
 ## 01 · HOOK (Harish, 0:00–0:30) · Slide 1
 
-> Farming is the only job where your most important coworker, the weather, never shows up to meetings, ignores every email, and changes the rules every single year. *(beat, let them laugh)*
+> Quick question: who here checked the weather today? *(raise your own hand, pause)*
 >
-> So here’s a question. Who knows more about a cornfield in Illinois: the farmer standing in it… or a satellite **700 kilometres above it?** *(pause and look at the judges)*
+> Now imagine betting your whole year’s paycheck on it. *(beat)*
 >
-> It’s the satellite. NASA can see how green that field is, how wet its soil is, and exactly how much hotter it’s gotten since the ’90s. The farmer just never gets to see any of it.
+> That’s what every farmer does, every spring. And the weather they learned from is changing.
 >
-> We’re **Team AgriHaven**: I’m Harish, and this is **Giri, Atharv and Dhishant**. And we turned NASA’s satellites into a farm advisor.
-
-> Every claim is true: NASA’s MODIS and SMAP satellites orbit about 685–705 km up, and AgriHaven shows each field’s greenness (NDVI), soil moisture and warming since the 1990s.
+> We’re **Team AgriHaven**. I’m Harish, and this is **Giri, Atharv and Dhishant**. We used NASA data to help farmers make that bet.
 
 ## 02 · PROBLEM (Giri, 0:30–0:55) · Slide 2
 
@@ -73,15 +71,18 @@
 **Giri (what’s next):**
 > Next, we want field-level satellite detail, a check against real harvest records, and to put this in front of Illinois farmers.
 
-**Harish (close, slowly):**
-> **From space to soil. From data to decisions.** *(beat)* That’s AgriHaven. Thank you!
+**Harish:**
+> Thank you. We’re AgriHaven.
+
+**All four, together (slowly):**
+> **From space to soil. From data to decisions.**
 
 ---
 
 ## Tips for delivery
 
-- **The hook lives on two pauses:** after the coworker joke (let them laugh), and after the satellite question (look at the judges and let them think). Harish should know it by heart.
-- **The slogan is the last thing the judges hear.** Say it slowly, pause after “decisions”, then “That’s AgriHaven.”
+- **The hook is short on purpose.** Raise your own hand on the question so the judges raise theirs, then pause after “paycheck”. Harish should know it by heart.
+- **The slogan is the last thing the judges hear, from all four of you at once.** Practise it together until you’re in sync. Slow, a small pause between the two halves, then stop.
 - **Talk to the judges, not the screen.** Dhishant: glance at the screen, then face the room.
 - **Pre-load Champaign** in the demo tab 5 minutes before you go up, so it loads instantly.
 - **If the Wi-Fi fails:** switch to slides 4–5 and say the same demo lines.
