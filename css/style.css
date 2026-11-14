@@ -509,3 +509,73 @@ body { top: 0 !important; position: static; }
 .goog-text-highlight, font[style*="background-color"] { background: none !important; box-shadow: none !important; }
 /* right-to-left languages: mirror reading areas only */
 body.rtl-text .tabpane p, body.rtl-text .chapter, body.rtl-text .card p, body.rtl-text h2, body.rtl-text h3, body.rtl-text li { direction: rtl; text-align: right; }
+
+/* ---------- phone polish: breathing room, no sideways scroll, readable tables ---------- */
+@media (max-width: 760px) {
+  html, body { overflow-x: hidden; }
+  .layout { padding: 16px; gap: 16px; }
+  .card { padding: 1.15rem 1.05rem; margin-bottom: 16px; }
+  .card h3, .rot h3, .labcard h3 { line-height: 1.3; margin-bottom: .4rem; }
+  .card p, .card li, .chapter p, .labcard p, .rot p, .rot li { line-height: 1.55; }
+  .card ul, .card ol { padding-left: 1.15rem; }
+  .card li + li { margin-top: .4rem; }
+  .muted.small, .small { line-height: 1.5; }
+  .headline { padding: 1.1rem 1.05rem; }
+  .headline li + li { margin-top: .45rem; }
+  .rot { padding: 1.15rem 1.05rem; margin-bottom: 16px; }
+  .rot .chips, .rot .seq { row-gap: .45rem; }
+  .chapter { padding: 1.1rem 1rem; column-gap: .75rem; row-gap: .6rem; margin-bottom: 14px; }
+  .labcard, .croprow, .ind { padding: 1.1rem 1rem; }
+  .indicators { gap: 12px; }
+
+  /* impact numbers: two even columns with room */
+  .impact { gap: 12px; }
+  .impact .kpi { padding: 1rem .9rem; }
+  .impact .kpi b { font-size: 1.35rem; margin-bottom: .3rem; }
+  .impact .kpi span { font-size: .82rem; line-height: 1.45; }
+  .impact .farm { padding-top: .2rem; }
+
+  /* landing header: keep the language and theme buttons clear of the title */
+  body:not(.picked) .brand { padding-right: 104px; }
+  body:not(.picked) .top .tag { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+  .top-actions { gap: .4rem; }
+  .langpick { position: relative; width: 44px; height: 44px; padding: 0; justify-content: center; }
+  .langpick span { font-size: 1.2rem; }
+  .langpick select { position: absolute; inset: 0; width: 100%; max-width: none; opacity: 0; }
+  .top .ghost#themeBtn { width: 44px; padding: 0; }
+
+  /* chart header: title, then tools on their own full-width row */
+  .chart-head { flex-direction: column; align-items: stretch; gap: .6rem; }
+  .chart-tools { min-width: 0; }
+  .chart-tools select, .chart-head select { flex: 1 1 100%; width: 100%; min-width: 0; padding: .55rem .6rem; }
+  .chart-wrap { height: 280px; }
+  .chart-wrap.tall { height: 400px; }
+
+  /* compare table: roomier cells, label column that doesn't collapse */
+  .table-wrap { margin: 0 -.25rem; }
+  .ctable { font-size: .8rem; table-layout: fixed; }
+  .ctable th, .ctable td { padding: .6rem .3rem; vertical-align: middle; overflow-wrap: break-word; }
+  .ctable th:first-child, .ctable td:first-child { width: 34%; }
+  .pickrots, .rotpick { gap: .5rem; }
+
+  /* data-sources table becomes stacked cards */
+  table.srctable, .srctable tbody, .srctable tr, .srctable td { display: block; width: 100%; }
+  .srctable tr:first-child { display: none; }
+  .srctable tr { border: 1px solid var(--border); border-radius: 12px; padding: .8rem .9rem; margin-bottom: .75rem; background: var(--surface-2); }
+  .srctable td { border: 0 !important; padding: .2rem 0 !important; line-height: 1.5; }
+  .srctable td:first-child { font-weight: 700; margin-bottom: .2rem; }
+  .srctable td:nth-child(2)::before { content: 'What we use: '; font-weight: 700; }
+  .srctable td:nth-child(3)::before { content: 'Resolution: '; font-weight: 700; }
+  .pipeline { gap: 12px; }
+
+  footer, .foot { padding: 1.2rem 16px 1.6rem; line-height: 1.5; }
+}
+@media (max-width: 560px) {
+  /* rotation card: rank and score share the top row, details below at full width */
+  .rot { grid-template-columns: 1fr auto; row-gap: .5rem; }
+  .rot .rank { grid-column: 1; grid-row: 1; font-size: 1.35rem; align-self: center; }
+  .rot .total { grid-column: 2; grid-row: 1; display: flex; align-items: baseline; gap: .3rem; min-width: 0; text-align: right; }
+  .rot .total b { font-size: 1.6rem; }
+  .rot > div:nth-child(2) { grid-column: 1 / -1; grid-row: 2; }
+  .ctable th { font-size: .74rem; overflow-wrap: break-word; }
+}

@@ -1101,7 +1101,7 @@ function renderCompare() {
       <div class="chart-wrap"><canvas id="tradeChart" role="img" aria-label="Scatter of rotations by climate resilience and soil health"></canvas></div></div>
     <div class="card"><h3>🎲 Uncertainty: how much do outcomes swing?</h3>
       <p class="small muted">Each bar spans the 10th–90th percentile of season outcomes (8 in 10 seasons fall inside). Taller bars mean less predictable seasons. "Today" uses the real 2011–2025 NASA weather. The 2050s bars use the same weather warmed by each NASA climate model, so the gap between models is the climate-model uncertainty.</p>
-      <div class="chart-wrap"><canvas id="uncChart" role="img" aria-label="Range of season outcomes per rotation"></canvas></div>
+      <div class="chart-wrap tall"><canvas id="uncChart" role="img" aria-label="Range of season outcomes per rotation"></canvas></div>
       <p class="small">${rows.map((x) => `<b>${esc(x.rot.name)}</b>: a poor season about ${x.rot.badYears.length ? `1 in ${Math.round(15 / x.rot.badYears.length)} years` : 'never in the last 15 years'}${x.futRange ? `; 2050s score ${fmt(x.futRange[0])}–${fmt(x.futRange[1])} depending on the model` : ''}.`).join('<br>')}</p></div>`;
   el.querySelectorAll('[data-cmp]').forEach((cb) => {
     cb.onchange = () => {
@@ -1131,15 +1131,25 @@ function renderCompare() {
   const groups = [{ label: 'Today (2011–2025 weather)', get: (x) => [x.p10, x.p90], med: (x) => x.p50, col: '#0b3d91' },
     ...cmp.cache.map((m, mi) => ({ label: `2050s · ${m.model}`, get: (x) => { const f = x.fut[mi]; return [pctl(f.ys, 0.1), pctl(f.ys, 0.9)]; }, med: (x) => pctl(x.fut[mi].ys, 0.5), col: ['#e0a526', '#d64933', '#8e44ad'][mi] }))];
   cmp.chart2 = new Chart($('#uncChart'), {
-    data: { labels: rows.map((x) => x.rot.name.length > 34 ? x.rot.name.slice(0, 32) + '…' : x.rot.name),
+    data: { labels: rows.map((x) => mobileMQ.matches ? wrapLabel(x.rot.name, 16) : (x.rot.name.length > 34 ? x.rot.name.slice(0, 32) + '…' : x.rot.name)),
       datasets: [
         ...groups.map((g) => ({ type: 'bar', label: g.label, data: rows.map(g.get), backgroundColor: g.col + '88', borderColor: g.col, borderWidth: 1, borderSkipped: false }))
       ] },
     options: { responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { labels: { color: text } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmt(c.raw[0])}–${fmt(c.raw[1])}` } } },
-      scales: { y: { min: 0, max: 100, title: { display: true, text: 'Season outcome (0–100)', color: text }, ticks: { color: text }, grid: { color: grid } },
-        x: { ticks: { color: text }, grid: { display: false } } } }
+      plugins: { legend: { position: mobileMQ.matches ? 'bottom' : 'top', labels: { color: text, boxWidth: 12, font: { size: mobileMQ.matches ? 11 : 12 } } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${fmt(c.raw[0])}–${fmt(c.raw[1])}` } } },
+      scales: { y: { min: 0, max: 100, title: { display: !mobileMQ.matches, text: 'Season outcome (0–100)', color: text }, ticks: { color: text }, grid: { color: grid } },
+        x: { ticks: { color: text, maxRotation: 0, autoSkip: false, font: { size: mobileMQ.matches ? 10 : 12 } }, grid: { display: false } } } }
   });
+}
+
+// split a long label into short lines for small screens
+function wrapLabel(text, max) {
+  const lines = []; let cur = '';
+  for (const w of text.split(' ')) {
+    if ((cur + ' ' + w).trim().length > max && cur) { lines.push(cur); cur = w; } else cur = (cur + ' ' + w).trim();
+  }
+  if (cur) lines.push(cur);
+  return lines.slice(0, 4);
 }
 
 // ---------------- sonification ----------------
@@ -1400,7 +1410,7 @@ function renderMethod(rows) {
     <div><b>4 · Rotation ranking</b>Climate resilience + soil health + fertilizer need, robust across 3 climate models</div>
   </div>
   <h3>Data sources</h3>
-  <table>
+  <table class="srctable">
     <tr><th>Dataset</th><th>What we use</th><th>Resolution</th></tr>
     <tr><td><a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener">NASA POWER</a> (Agroclimatology), from MERRA-2 reanalysis and CERES/GEWEX satellite radiation</td><td>11 daily variables, ${y0}–${y1}: max/min air temperature, dew point, humidity, wind, solar radiation, rain, soil-surface temperature, and surface, root-zone and full-profile soil wetness (GWETTOP / GWETROOT / GWETPROF). Plus near-real-time data for the current season (~3-day latency)</td><td>Daily, ~0.5° × 0.625°</td></tr>
     <tr><td><a href="https://www.earthdata.nasa.gov/eosdis/science-system-description/eosdis-components/gibs" target="_blank" rel="noopener">NASA GIBS</a>: MODIS Terra NDVI, MODIS GPP (plant productivity), MODIS land surface temperature, MODIS land cover, SMAP L4 root-zone soil moisture, GPM IMERG rainfall, SEDAC croplands</td><td>Map layers, plus a season time-lapse of MODIS NDVI showing the crop greening up and drying down from space</td><td>250 m – 10 km</td></tr>
