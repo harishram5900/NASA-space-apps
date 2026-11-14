@@ -17,6 +17,17 @@ Space Apps projects are scored on **five criteria**: **Impact, Creativity, Valid
 
 ---
 
+## What past global winners did, and what we borrowed
+
+| Past winner | What it did | What Rotation Radar does |
+|---|---|---|
+| **2plant** (2024 Galactic Impact) and **Waterwise** (2024 Best Use of Data), both farming apps | Soil-moisture and ET data turned into in-season decisions for farmers | 📡 *Right now on this field*: live NASA POWER vs 35 years, with plant/wait/irrigate/cover-crop advice |
+| **TerraTales** (2024 Best Storytelling), **HerCode Space** (2025 Best Storytelling) | Data told as stories for non-experts | 📖 *Field story*: six chapters generated from the field's own NASA data |
+| **Arcobaleno** (2023 Global Connection) | Sonification for people with visual impairments | 🔊 *Hear this trend*, plus read-aloud of the story |
+| **Global Connection** winners | Reach beyond one language or country | 🌐 Spanish story, presets on 4 continents, works anywhere on Earth |
+| **SpaceGenes+** (2025 Best Use of Science) | Rigorous, interactive dashboard for experts | Climate shift tab with p-values, 3-model robustness and reproducible scripts |
+| **Two 2023 winners** on Moonquake Map | Interactive maps of real NASA data | Map with NASA GIBS MODIS, SMAP and SEDAC layers |
+
 ## 30-second pitch (memorize this)
 
 > "Every farmer in Illinois plans their crops on memories of a climate that's gone. NASA data shows Champaign County now gets about 150 more degree-days of heat and a frost-free season almost two weeks longer than in the 90s, and 2012 showed what one hot, dry summer does to corn.

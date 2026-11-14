@@ -26,7 +26,10 @@ Rotation Radar is a free web app. Click any field on Earth and it will:
 4. **Rank 11 rotations, or one you build yourself.** Scores combine **climate resilience**, **soil health** (diversity, legumes, winter cover, perennials) and **fertilizer need**, weighted by what matters to the farmer.
 5. **Fast-forward to the 2050s** with **NASA NEX-GDDP-CMIP6** projections from three independent climate models (GFDL-ESM4, MRI-ESM2-0, ACCESS-CM2) under moderate (SSP2-4.5) and high (SSP5-8.5) emissions. Rotations are re-ranked under every model separately, so you can see whether the recommendation is robust. A custom what-if slider is also available.
 6. **Show what switching is worth:** nitrogen fertilizer saved, dollars, tonnes of CO₂e avoided and soil-health gain for *your* acreage and fertilizer price.
-7. **Explain everything in plain language**, with a 60-second guided tour, a shareable field link and a printable farm report.
+7. **Tell the field's story** in six data-driven chapters (the climate it was built for, the year everything went wrong, the new normal, the 2050s, a plan that holds) in **English or Spanish**, with **read-aloud**.
+8. **Check the season right now:** NASA POWER near-real-time data (~3-day latency) compared with the same dates in every year since 1991, turned into timely advice (plant, wait, irrigate, seed a cover crop).
+9. **Hear the data:** any climate trend can be played as sound (sonification) for accessibility.
+10. **Explain everything in plain language**, with a 60-second guided tour, a shareable field link and a printable farm report.
 
 Satellite context layers from **NASA GIBS** (MODIS NDVI vegetation greenness, SMAP root-zone soil moisture, SEDAC croplands) show what's growing around the field right now.
 

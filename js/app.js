@@ -5,7 +5,9 @@ import {
 import { loadProjections, nearestSite, SCENARIOS, seasonalSummary } from './projections.js';
 import { impact, N_FULL_LB } from './impact.js';
 import { ROTATIONS, scoreRotations, explain } from './rotations.js';
-import { getPower, getSoil, getSample, geocode, reverseName, GIBS_LAYERS, gibsUrl, powerUrl, soilUrl } from './api.js';
+import { getPower, getSoil, getSample, getRecent, geocode, reverseName, GIBS_LAYERS, gibsUrl, powerUrl, soilUrl } from './api.js';
+import { seasonNow } from './now.js';
+import { buildStory, storyStrings } from './story.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -24,7 +26,7 @@ const SAMPLE = { lat: 40.2, lon: -88.4, name: 'Champaign County, Illinois, US (o
 
 const state = {
   lat: null, lon: null, name: '', raw: null, soil: null, powerUrl: null, soilUrl: null,
-  custom: [], indicator: 'gdd', tab: 'rotations', chart: null, lastResult: null, loadId: 0,
+  custom: [], indicator: 'gdd', tab: 'story', lang: 'en', recent: null, recentErr: false, chart: null, lastResult: null, loadId: 0,
   scenario: 'observed', proj: { sites: {} }, site: null, acres: 500, price: 0.55
 };
 const projReady = loadProjections().then((p) => { state.proj = p; });
@@ -200,6 +202,8 @@ $('#shareBtn').onclick = async () => {
 // ---------------- guided tour ----------------
 const TOUR = [
   { sel: '#map', tab: 'rotations', title: 'Pick any field on Earth', text: 'Click the map, search a town or use a preset. Rotation Radar downloads 35 years of daily NASA POWER weather and SoilGrids soil for that exact point. Toggle NASA satellite layers (MODIS greenness, SMAP soil moisture) to see current conditions.' },
+  { sel: '#nowCard', tab: 'story', title: 'Right now on this field', text: 'Live NASA POWER data (about 3 days behind real time) compared with the same dates in every year since 1991, turned into timely advice: plant, wait, irrigate or seed a cover crop.' },
+  { sel: '#story', tab: 'story', title: 'The field\'s climate story', text: 'Six chapters, generated from the data: the climate this farm was built for, the year everything went wrong, the new normal, the 2050s and a plan that holds. Switch to Spanish or have it read aloud.' },
   { sel: '#headline', tab: 'rotations', title: 'The NASA story of this field', text: 'Plain-language facts: how much heat, frost-free season, downpours and hot days have changed since 1991, tested for statistical significance.' },
   { sel: '#impact', tab: 'rotations', title: 'What switching is worth', text: 'Fertilizer saved, dollars, greenhouse gas avoided and fewer bad seasons, compared with today\'s corn → soybean. Change the farm size and nitrogen price.' },
   { sel: '#rotations', tab: 'rotations', title: 'Rotations ranked for this field', text: 'Each rotation is scored on climate resilience (every crop grown in every real season), soil health and fertilizer need, and each score comes with plain-English reasons.' },
@@ -250,7 +254,10 @@ async function selectLocation(lat, lon, name) {
     updateSite();
     $('#locLabel').textContent = `${state.name} · ${lat.toFixed(3)}°, ${lon.toFixed(3)}°`;
     setStatus('');
+    state.recent = null; state.recentErr = false;
     render();
+    getRecent(lat, lon).then((j) => { if (id === state.loadId) { state.recent = j; renderNow(); } })
+      .catch(() => { if (id === state.loadId) { state.recentErr = true; renderNow(); } });
   } catch (e) {
     if (id !== state.loadId) return;
     console.error(e);
@@ -269,7 +276,9 @@ async function loadSample() {
   map.setView([SAMPLE.lat, SAMPLE.lon], 7);
   $('#locLabel').textContent = SAMPLE.name;
   setStatus('');
+  state.recent = null; state.recentErr = false;
   render();
+  getRecent(SAMPLE.lat, SAMPLE.lon).then((j) => { state.recent = j; renderNow(); }).catch(() => { state.recentErr = true; renderNow(); });
 }
 
 function updateSite() {
@@ -306,12 +315,12 @@ function render() {
   }
   // Observed-climate scores of the same rotations, to show how the future changes them.
   result.observedTotals = null;
-  if (sc !== 'observed') {
-    const o = scoreRotations(byYear(obs), state.soil, weights, list);
-    result.observedTotals = Object.fromEntries(o.scored.map((x) => [x.id, x.total]));
-  }
-  const obsSummary = sc === 'observed' ? summary : indicatorSummary(climateIndicators(byYear(obs)));
-  state.lastResult = { rows, summary, obsSummary, result, years, dT, rain, proj, sc };
+  const obsYears = sc === 'observed' ? years : byYear(obs);
+  const obsResult = sc === 'observed' ? result : scoreRotations(obsYears, state.soil, weights, list);
+  if (sc !== 'observed') result.observedTotals = Object.fromEntries(obsResult.scored.map((x) => [x.id, x.total]));
+  const obsRows = sc === 'observed' ? rows : climateIndicators(obsYears);
+  const obsSummary = sc === 'observed' ? summary : indicatorSummary(obsRows);
+  state.lastResult = { rows, summary, obsSummary, obsRows, obsResult, result, years, dT, rain, proj, sc, obs, weights, list };
   renderSoil();
   renderHeadline(summary, result, dT, rain);
   renderImpact(result);
@@ -319,8 +328,137 @@ function render() {
   renderIndicators(summary);
   renderCrops(result);
   renderMethod(rows);
+  renderStory();
+  renderNow();
   if (state.tab === 'climate') drawChart();
 }
+
+// ---------------- field story ----------------
+let futureCache = { key: null, val: null };
+function futureFor(lr) {
+  const site = state.site?.ssp245;
+  if (!site) return null;
+  const key = `${state.lat},${state.lon},${JSON.stringify(lr.weights)},${lr.list.length},${state.soil?.awc}`;
+  if (futureCache.key === key) return futureCache.val;
+  const futRows = climateIndicators(byYear(applyMonthlyDeltas(lr.obs, site.mean)));
+  const fs = indicatorSummary(futRows).find((x) => x.key === 'hotDays');
+  const ranks = {};
+  for (const delta of Object.values(site.models)) {
+    scoreRotations(byYear(applyMonthlyDeltas(lr.obs, delta)), state.soil, lr.weights, lr.list).scored
+      .forEach((x, i) => { (ranks[x.id] ||= []).push(i + 1); });
+  }
+  const sm = seasonalSummary(site.mean, state.lat);
+  futureCache = { key, val: { dT: sm.dT, rainPct: sm.rainPct, hotDays: fs.recent, ranks } };
+  return futureCache.val;
+}
+
+function renderStory() {
+  const lr = state.lastResult;
+  if (!lr) return;
+  const r = lr.obsResult;
+  const base = r.scored.find((x) => x.id === 'cs');
+  const top = r.scored[0].id === 'cs' ? r.scored[1] : r.scored[0];
+  const future = futureFor(lr);
+  const rk = future?.ranks?.[top.id];
+  const chapters = buildStory({
+    lang: state.lang, name: state.name, soil: state.soil, rows: lr.obsRows, summary: lr.obsSummary, rel: r.rel,
+    top, base, impact: impact(top, base, state.acres, state.price), acres: state.acres,
+    future, robust: rk ? [Math.min(...rk), Math.max(...rk)] : null
+  });
+  const L = storyStrings(state.lang);
+  $('#story').innerHTML = chapters.map((c, i) => `
+    <article class="chapter" data-i="${i}">
+      <div class="ic" aria-hidden="true">${c.icon}</div>
+      <div><div class="n">${state.lang === 'es' ? 'Capítulo' : 'Chapter'} ${i + 1}</div><h3>${esc(c.title)}</h3><p>${esc(c.text)}</p>${c.chart || ''}</div>
+      <div class="bigstat"><b>${esc(c.big)}</b><span>${esc(c.bigLabel)}</span></div>
+    </article>`).join('');
+  $('#langBtn').textContent = L.lang;
+  $('#storyCta').textContent = L.cta;
+  if (!speaking) $('#readBtn').textContent = L.read;
+}
+$('#langBtn').onclick = () => { stopSpeech(); state.lang = state.lang === 'en' ? 'es' : 'en'; renderStory(); };
+$('#storyCta').onclick = () => { showTab('rotations'); $('#tab-rotations').scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+
+// read aloud (Web Speech API)
+let speaking = false;
+function stopSpeech() {
+  speaking = false;
+  try { speechSynthesis.cancel(); } catch {}
+  document.querySelectorAll('.chapter.speaking').forEach((e) => e.classList.remove('speaking'));
+  $('#readBtn').textContent = storyStrings(state.lang).read;
+}
+$('#readBtn').onclick = () => {
+  if (!('speechSynthesis' in window)) { toast('Read-aloud is not supported in this browser.'); return; }
+  if (speaking) { stopSpeech(); return; }
+  speaking = true;
+  $('#readBtn').textContent = storyStrings(state.lang).stop;
+  const els = [...document.querySelectorAll('.chapter')];
+  let i = 0;
+  const next = () => {
+    document.querySelectorAll('.chapter.speaking').forEach((e) => e.classList.remove('speaking'));
+    if (!speaking || i >= els.length) { stopSpeech(); return; }
+    const el = els[i++];
+    el.classList.add('speaking');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const u = new SpeechSynthesisUtterance(`${el.querySelector('h3').textContent}. ${el.querySelector('p').textContent}`);
+    u.lang = state.lang === 'es' ? 'es-ES' : 'en-US';
+    u.rate = 1.02;
+    u.onend = next;
+    u.onerror = next;
+    speechSynthesis.speak(u);
+  };
+  next();
+};
+
+// ---------------- right now (near-real-time NASA POWER) ----------------
+function renderNow() {
+  const el = $('#nowCard');
+  if (state.recentErr) { el.innerHTML = '<p class="muted small">📡 Live season check unavailable right now (NASA POWER near-real-time service did not respond).</p>'; return; }
+  if (!state.recent || !state.lastResult) { el.innerHTML = '<p class="muted small"><span class="spinner"></span>Checking this season against 35 years of NASA data…</p>'; return; }
+  const n = seasonNow(state.recent, state.lastResult.obs, state.lat);
+  if (!n) { el.innerHTML = ''; return; }
+  const gauge = (label, val, normal, p, unit, dec = 0) => `
+    <div class="gauge"><span>${label}</span><b>${fmt(val, dec)} ${unit} <span class="muted small">(normal ${fmt(normal, dec)})</span></b>
+      <div class="track"><div class="dot" style="left:${p ?? 50}%"></div></div>
+      <div class="scale"><span>driest/coolest</span><span>${p === null ? '' : p >= 100 ? 'record high' : p <= 0 ? 'record low' : p + 'th percentile'}</span><span>wettest/warmest</span></div></div>`;
+  el.innerHTML = `
+    <h2>📡 Right now on this field <small>NASA POWER near-real-time, through ${esc(n.asOf)}, compared with the same dates in ${n.nYears} years</small></h2>
+    <div class="gauges">
+      ${gauge('Rain, last 30 days', n.rain30, n.rainNormal, n.rainPct, 'mm')}
+      ${gauge('Root-zone soil wetness', n.wet7, n.wetNormal, n.wetPct, '', 2)}
+      ${gauge('Temperature, last 30 days', n.temp, n.tempNormal, n.tempPct, '°C', 1)}
+    </div>
+    <ul>${n.advice.map((a) => `<li>${esc(a)}</li>`).join('')}</ul>`;
+}
+
+// ---------------- sonification ----------------
+let audioCtx = null;
+$('#hearBtn').onclick = () => {
+  const lr = state.lastResult;
+  if (!lr) return;
+  const vals = lr.rows.map((r) => r[state.indicator]).filter((v) => v !== null);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  try { audioCtx ||= new (window.AudioContext || window.webkitAudioContext)(); } catch { toast('Audio not supported in this browser.'); return; }
+  const t0 = audioCtx.currentTime + 0.05, step = 0.16;
+  vals.forEach((v, i) => {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.value = 220 * Math.pow(2, (max === min ? 0.5 : (v - min) / (max - min)) * 2); // 220-880 Hz
+    g.gain.setValueAtTime(0, t0 + i * step);
+    g.gain.linearRampToValueAtTime(0.18, t0 + i * step + 0.02);
+    g.gain.linearRampToValueAtTime(0, t0 + i * step + step * 0.9);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(t0 + i * step); o.stop(t0 + (i + 1) * step);
+  });
+  // highlight bars as they play
+  vals.forEach((_, i) => setTimeout(() => {
+    if (!state.chart) return;
+    state.chart.setActiveElements([{ datasetIndex: 0, index: i }]);
+    state.chart.tooltip.setActiveElements([{ datasetIndex: 0, index: i }], { x: 0, y: 0 });
+    state.chart.update('none');
+  }, i * step * 1000));
+  toast(`Playing ${vals.length} years: higher pitch = higher ${INDICATORS.find((x) => x.key === state.indicator).label.split(' (')[0].toLowerCase()}`);
+};
 
 function renderSoil() {
   const s = state.soil;

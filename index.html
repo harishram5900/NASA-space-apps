@@ -92,13 +92,24 @@
       <div id="headline" class="headline" hidden></div>
 
       <nav class="tabs" role="tablist">
-        <button role="tab" data-tab="rotations" aria-selected="true">🔄 Rotation planner</button>
+        <button role="tab" data-tab="story" aria-selected="true">📖 Field story</button>
+        <button role="tab" data-tab="rotations">🔄 Rotation planner</button>
         <button role="tab" data-tab="climate">📈 Climate shift</button>
         <button role="tab" data-tab="crops">🌾 Crop reliability</button>
         <button role="tab" data-tab="method">🔬 Data &amp; method</button>
       </nav>
 
-      <div class="tabpane" id="tab-rotations">
+      <div class="tabpane" id="tab-story">
+        <div id="nowCard" class="card now"></div>
+        <div class="story-bar">
+          <button type="button" class="ghost" id="readBtn">🔊 Read aloud</button>
+          <button type="button" class="ghost" id="langBtn">🌐 Español</button>
+        </div>
+        <div id="story" class="story"></div>
+        <button type="button" id="storyCta">See all rotations →</button>
+      </div>
+
+      <div class="tabpane" id="tab-rotations" hidden>
         <div id="impact" class="impact"></div>
         <div id="rotations"></div>
         <div class="card builder">
@@ -114,7 +125,10 @@
         <div class="card">
           <div class="chart-head">
             <h3 id="chartTitle">Indicator over time</h3>
-            <select id="indicatorSelect" aria-label="Choose indicator"></select>
+            <div class="chart-tools">
+              <button type="button" class="ghost" id="hearBtn" title="Play each year as a tone: higher pitch = higher value">🔊 Hear this trend</button>
+              <select id="indicatorSelect" aria-label="Choose indicator"></select>
+            </div>
           </div>
           <div class="chart-wrap"><canvas id="trendChart" role="img" aria-label="Bar chart of the selected climate indicator for each year with trend line and period means"></canvas></div>
           <p class="muted small" id="chartNote"></p>

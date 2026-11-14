@@ -102,17 +102,32 @@ function textureClass(sand, clay) {
  * Topsoil for the field. SoilGrids masks cities and water, so if the exact point
  * has no soil we look a few km around it for the nearest mapped soil.
  */
+const soilKey = (lat, lon) => `rr-soil:${lat.toFixed(2)},${lon.toFixed(2)}`;
+
 export async function getSoil(lat, lon) {
+  // 1. Soil saved from an earlier visit (survives SoilGrids outages during a demo)
+  try { const c = localStorage.getItem(soilKey(lat, lon)); if (c) return JSON.parse(c); } catch {}
   const offsets = [[0, 0], [0.04, 0], [-0.04, 0], [0, 0.05], [0, -0.05], [0.08, 0.08], [-0.08, -0.08]];
   for (const [dy, dx] of offsets) {
     try {
-      const soil = parseSoil(await fetchJson(soilUrl(lat + dy, lon + dx), 30000));
-      if (soil) return { ...soil, offsetKm: Math.round(Math.hypot(dy * 111, dx * 111 * Math.cos(lat * Math.PI / 180))) };
+      const soil = parseSoil(await fetchJson(soilUrl(lat + dy, lon + dx), 12000));
+      if (soil) {
+        const out = { ...soil, offsetKm: Math.round(Math.hypot(dy * 111, dx * 111 * Math.cos(lat * Math.PI / 180))) };
+        try { localStorage.setItem(soilKey(lat, lon), JSON.stringify(out)); } catch {}
+        return out;
+      }
     } catch {
-      return null; // service down: soil is optional, analysis falls back to neutral soil
+      break; // service down or slow: fall through to the bundled sample
     }
   }
-  return null;
+  // 2. Bundled SoilGrids sample for central Illinois (our home region)
+  if (Math.abs(lat - 40.2) < 0.4 && Math.abs(lon + 88.4) < 0.5) {
+    try {
+      const j = await fetch('data/sample-soil-champaign-il.json').then((r) => r.json());
+      return { ...parseSoil(j), cached: true };
+    } catch {}
+  }
+  return null; // soil is optional; analysis falls back to neutral soil
 }
 
 export async function geocode(query) {
@@ -130,6 +145,16 @@ export async function reverseName(lat, lon) {
   } catch {
     return null;
   }
+}
+
+/** Near-real-time NASA POWER (~3-day latency): Jan 1 of last year to today. */
+export async function getRecent(lat, lon) {
+  const now = new Date();
+  const start = `${now.getUTCFullYear() - 1}0101`;
+  const end = now.toISOString().slice(0, 10).replace(/-/g, '');
+  const q = new URLSearchParams({ parameters: 'T2M_MAX,T2M_MIN,PRECTOTCORR,GWETROOT', community: 'AG',
+    latitude: lat.toFixed(4), longitude: lon.toFixed(4), start, end, format: 'JSON' });
+  return fetchJson(`https://power.larc.nasa.gov/api/temporal/daily/point?${q}`, 45000);
 }
 
 /** Offline demo data bundled with the app (Champaign County, Illinois). */

@@ -4,6 +4,8 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import { parsePower, byYear, climateIndicators, indicatorSummary, cropReliability, mannKendall, applyScenario, applyMonthlyDeltas, et0, extraterrestrialRadiation } from '../js/analysis.js';
 import { impact } from '../js/impact.js';
+import { seasonNow } from '../js/now.js';
+import { buildStory } from '../js/story.js';
 import { scoreRotations, soilHealth, nitrogenNeed } from '../js/rotations.js';
 import { parseSoil } from '../js/api.js';
 
@@ -101,6 +103,25 @@ test('projection file (if built) has 3 models and sane change factors', () => {
     assert.equal(Object.keys(site[sc].models).length, 3);
     for (const k of ['dTmax', 'dTmin']) assert.ok(site[sc].mean[k].every((x) => x > -3 && x < 8));
     assert.ok(site[sc].mean.pRatio.every((x) => x >= 0.6 && x <= 1.6));
+  }
+});
+
+test('right-now check ranks the latest data against history', () => {
+  const n = seasonNow(json, days, 40.2);
+  assert.equal(n.asOf, '2025-12-31');
+  for (const k of ['rainPct', 'wetPct', 'tempPct', 'gddPct']) assert.ok(n[k] >= 0 && n[k] <= 100, k);
+  assert.ok(n.nYears >= 30 && n.advice.length >= 1);
+});
+
+test('field story: 2012 is the year everything went wrong, in English and Spanish', () => {
+  const rows = climateIndicators(years);
+  const summary = indicatorSummary(rows);
+  const { scored, rel } = scoreRotations(years, soil, { climate: 3, soil: 2, inputs: 1 });
+  const base = scored.find((r) => r.id === 'cs'), top = scored.find((r) => r.id !== 'cs');
+  for (const lang of ['en', 'es']) {
+    const ch = buildStory({ lang, name: 'Test', soil, rows, summary, rel, top, base, impact: impact(top, base), acres: 500 });
+    assert.equal(ch.length, 5);
+    assert.equal(ch[2].big, '2012');
   }
 });
 
