@@ -1,7 +1,7 @@
 # AgriHaven: local pitch (Chicago), 15 slides, under 5 minutes
 
 About **3:50 of speaking**, about **4:20–4:30 with clicks and pauses**. Hard limit 5:00.
-Dhishant speaks only during the demo. Slides are tagged with the judges' rubric: 01 Hook → 07 Team + next.
+Dhishant speaks only during the demo. Speaking time: Harish ~70 s, Atharv ~70 s, Giri ~60 s, Dhishant ~60 s. Slides are tagged with the judges' rubric: 01 Hook → 07 Team + next.
 
 | Slide | Rubric | Time | Who |
 |---|---|---|---|
@@ -14,11 +14,11 @@ Dhishant speaks only during the demo. Slides are tagged with the judges' rubric:
 | 7 Demo | 04 Demo | 1:33–2:35 | Dhishant |
 | 8 NASA data | 05 The data | 2:35–2:45 | Giri |
 | 9 Satellite pixels | 05 The data | 2:45–2:53 | Giri |
-| 10 Tested | 05 The data | 2:53–3:05 | Giri |
+| 10 Tested | 05 The data | 2:53–3:05 | Atharv |
 | 11 The decision | 06 Impact | 3:05–3:20 | Atharv |
 | 12 Farm numbers | 06 Impact | 3:20–3:37 | Atharv |
 | 13 Why us | 07 Team + next | 3:37–3:58 | Harish |
-| 14 What's next | 07 Team + next | 3:58–4:08 | Giri |
+| 14 What's next | 07 Team + next | 3:58–4:08 | Atharv |
 | 15 Close | 07 Team + next | 4:08–4:17 | Harish, then all four |
 
 **1 · Harish:** Quick question: who here checked the weather today? *(raise your hand, wait)* **[click]** Now imagine betting your whole year’s paycheck on it.
@@ -44,7 +44,7 @@ Dhishant speaks only during the demo. Slides are tagged with the judges' rubric:
 
 **9 · Giri:** And we decode satellite pixels from MODIS, SMAP and NISAR back into real numbers for one single field.
 
-**10 · Giri:** And we tested it. Without being told, it finds the 2012 drought and Illinois’s soaking-wet 2019 spring, when farmers had just two dry days to plant.
+**10 · Atharv:** And we tested it. Without being told, it finds the 2012 drought and Illinois’s soaking-wet 2019 spring, when farmers had just two dry days to plant.
 
 **11 · Atharv:** So who wins? Corn-soybean is the safest choice today, but it uses the most fertilizer, loses the most soil, and falls furthest by the 2050s. Add a rye cover crop, and most of that risk goes away.
 
@@ -52,7 +52,7 @@ Dhishant speaks only during the demo. Slides are tagged with the judges' rubric:
 
 **13 · Harish:** So why us? All four of us have spent time in our grandparents’ villages, watching them farm. We saw how much depends on one guess about the weather, and how often that guess is now wrong. So we did the research, and we built the tool we wish they’d had.
 
-**14 · Giri:** Next, we want to check AgriHaven against real harvest records with extension agents, bring in 30-metre field-level satellite data, and add more crops and regions.
+**14 · Atharv:** Next, we want to check AgriHaven against real harvest records with extension agents, bring in 30-metre field-level satellite data, and add more crops and regions.
 
 **15 · Harish:** Thank you. We’re AgriHaven.
 **All four, together, slowly:** From space to soil. From data to decisions.
@@ -61,5 +61,5 @@ Dhishant speaks only during the demo. Slides are tagged with the judges' rubric:
 - Slide 1 has one click: the “paycheck” line appears on Harish’s click.
 - Load Champaign in a browser tab before you go up, and make sure the site is in English.
 - **If the Wi-Fi fails:** play the video on slide 7 and say the same lines over it. When your lines are done, stop the video and click on. Don’t let it run to the end (it’s 87 seconds).
-- **If you’re running long:** skip slide 9 (Giri goes 8 → 10), then drop the 🌐 line.
+- **If you’re running long:** skip slide 9 (Giri hands to Atharv after slide 8), then drop the 🌐 line.
 - Time one full run with a stopwatch. Aim for 4:30 or less.
