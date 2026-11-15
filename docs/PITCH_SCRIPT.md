@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | 01 | Hook | 0:00–0:20 | Harish | Slide 1 |
 | 02 | Problem | 0:20–0:45 | Giri | Slide 2 |
-| 03 | Solution | 0:45–1:05 | Atharv | Slide 3 |
+| 03 | Solution | 0:45–1:05 | Harish → Atharv | Slide 3 |
 | 04 | Demo | 1:05–2:30 | Dhishant | Slide 4 · live app (backup: the video on slide 4) |
 | 05 | The data | 2:30–3:00 | Giri | Slide 5 (slide 6 if asked how you know it's right) |
 | 06 | Impact | 3:00–3:35 | Atharv | Slide 7 |
@@ -32,10 +32,12 @@
 >
 > So farmers there are planning for a climate that no longer exists.
 
-## 03 · SOLUTION (Atharv, 0:45–1:05) · Slide 3
+## 03 · SOLUTION (Harish → Atharv, 0:45–1:05) · Slide 3
 
+**Harish (step forward, slowly):**
 > So here’s our one sentence: **AgriHaven lets any farmer test-drive a crop rotation on NASA data, today and in the 2050s, before they plant it.**
->
+
+**Atharv:**
 > Pick a field, and we replay 35 real years of NASA weather on ten crops, then rank rotations by risk, soil health and cost, in plain English. Dhishant?
 
 ## 04 · DEMO (Dhishant, 1:05–2:30) · Slide 4, then the live app

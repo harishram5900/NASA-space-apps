@@ -8,7 +8,7 @@ Target 4:40 (20-second buffer). Slides are tagged with the judges' rubric: 01 Ho
 | 2 Title | 01 Hook | 0:10–0:25 | Harish |
 | 3 Hot days chart | 02 Problem | 0:25–0:45 | Giri |
 | 4 2012 harvest | 02 Problem | 0:45–1:00 | Giri |
-| 5 One sentence | 03 Solution | 1:00–1:10 | Atharv |
+| 5 One sentence | 03 Solution | 1:00–1:10 | Harish |
 | 6 Three steps | 03 Solution | 1:10–1:25 | Atharv |
 | 7 Demo | 04 Demo | 1:25–2:45 | Dhishant |
 | 8 NASA data | 05 The data | 2:45–3:00 | Giri |
@@ -28,7 +28,7 @@ Target 4:40 (20-second buffer). Slides are tagged with the judges' rubric: 01 Ho
 
 **4 · Giri:** And when it goes wrong, it goes badly wrong. In 2012, one hot, dry summer, with 53 days above 32 degrees in Champaign County, took Illinois corn from 157 bushels an acre to 105. A third of the harvest, gone in one season.
 
-**5 · Atharv:** So here’s our one sentence: AgriHaven lets any farmer test-drive a crop rotation on NASA data, today and in the 2050s, before they plant it.
+**5 · Harish (step forward, slowly):** So here’s our one sentence: AgriHaven lets any farmer test-drive a crop rotation on NASA data, today and in the 2050s, before they plant it.
 
 **6 · Atharv:** Three steps. Pick any field on Earth. See how its climate has really shifted: 13 indicators, each tested for a real trend. Then compare rotations across ten crops, ranked by risk, soil health and cost, in plain English. Dhishant?
 
