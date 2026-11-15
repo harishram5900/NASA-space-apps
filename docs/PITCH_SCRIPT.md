@@ -1,105 +1,71 @@
-# AgriHaven: 5-minute pitch script
+# AgriHaven: global pitch, 7 slides, about 4:20
 
-**Team AgriHaven:** Harish · Dhishant · Giri · Atharv **Target:** about 4:20 (40-second buffer for laughs, pauses and clicks)
+Harish, Giri and Atharv speak about equally (~60 s each). Dhishant speaks only in the demo.
+Harish opens the pitch and is the last voice before the team slogan.
+**Clicker path:** 1 → 2 → 3 → 4 (switch to the live site) → 5 → 7. Slide 6 is only for judge questions.
 
-| # | Rubric step | Time | Who | Screen |
-|---|---|---|---|---|
-| 01 | Hook | 0:00–0:20 | Harish | Slide 1 |
-| 02 | Problem | 0:20–0:50 | Giri | Slide 2 |
-| 03 | Solution | 0:50–1:08 | Harish → Atharv | Slide 3 |
-| 04 | Demo | 1:08–2:35 | Dhishant | Slide 4 · live app (backup: the video on slide 4) |
-| 05 | The data | 2:35–3:05 | Giri | Slide 5 (slide 6 if asked how you know it's right) |
-| 06 | Impact | 3:05–3:35 | Atharv | Slide 7 |
-| 07 | Team + next | 3:35–4:20 | Harish → Giri → all four → Harish | Slide 7 |
+| Slide | Time | Who |
+|---|---|---|
+| 1 Hook | 0:00–0:20 | Harish |
+| 2 Problem | 0:20–0:50 | Giri |
+| 3 Solution | 0:50–1:12 | Harish → Atharv |
+| 4 Demo | 1:12–2:35 | Dhishant |
+| 5 The data | 2:35–3:05 | Giri → Atharv |
+| 7 Impact, next, why us | 3:05–4:08 | Atharv → Harish |
+| 7 Close | 4:08–4:17 | All four, then Harish |
 
----
-
-## 01 · HOOK (Harish, 0:00–0:20) · Slide 1
-
-> Quick question: who here checked the weather today? *(raise your own hand, pause)*
->
+## Slide 1 · Harish
+> Quick question: who here checked the weather today? *(raise your hand, pause)*
 > Now imagine betting your whole year’s paycheck on it. *(beat)*
->
 > That’s what every farmer does, every spring. And the weather they learned from is changing.
->
 > We’re **Team AgriHaven**. I’m Harish, and this is **Giri, Atharv and Dhishant**. We used NASA data to help farmers make that bet.
 
-## 02 · PROBLEM (Giri, 0:20–0:50) · Slide 2
-
+## Slide 2 · Giri
 > Here’s the problem. Farmers decide what to plant using what has always worked: their family’s experience. But the climate that experience was built on is changing, and no farmer can see how much it has changed on their own field.
->
-> So we checked with NASA data. Take Champaign County, in the heart of Illinois corn country, about two and a half hours south of here. Since the ’90s, its growing season has gained **148 degree-days of heat**, and its frost-free season is **12 days longer**. And when it goes wrong, it goes badly wrong: in **2012**, one hot, dry summer cut Illinois corn by **about a third**.
->
+> So we checked with NASA data. Take Champaign County, in the heart of Illinois corn country, a couple of hours south of here. Since the ’90s, its growing season has gained **148 degree-days of heat**, and its frost-free season is **12 days longer**. And when it goes wrong, it goes badly wrong: in **2012**, one hot, dry summer cut Illinois corn by **about a third**.
 > So farmers there are planning for a climate that no longer exists.
 
-## 03 · SOLUTION (Harish → Atharv, 0:50–1:08) · Slide 3
-
+## Slide 3 · Harish → Atharv
 **Harish (step forward, slowly):**
 > So here’s our one sentence: **AgriHaven lets any farmer test-drive a crop rotation on NASA data, today and in the 2050s, before they plant it.**
 
 **Atharv:**
-> Pick a field, and we replay 35 real years of NASA weather on ten crops, then rank rotations by risk, soil health and cost, in plain English. Dhishant?
+> Three steps. Pick any field on Earth. See how its climate has really shifted, across 13 indicators. Then compare rotations across ten crops, ranked by risk, soil health and cost, in plain English. Dhishant?
 
-## 04 · DEMO (Dhishant, 1:08–2:35) · Slide 4, then the live app
+## Slide 4 · Dhishant (live site; the video on this slide is the Wi-Fi backup)
+1. **Map**, type “Champ”, pick Champaign: “It works for any field on Earth, but let’s open that same Champaign County field. You start typing, you pick it, and it pulls 35 years of NASA data for that exact spot.”
+2. **Right now:** “Look at this season: the warmest 30 days on record for this field, and dry. So AgriHaven tells the farmer: drill your cover crop, don’t broadcast it.”
+3. **Chapter 3:** “And 2012. We never told the model about that drought. It found it by itself.”
+4. **Satellite lab:** “Then we look from space. Crop greenness at its peak: NDVI 0.78, a healthy, dense canopy. Radar from NASA’s brand-new NISAR satellite. Soil moisture at three depths. Even the crop’s whole season, green-up to harvest.”
+5. **Compare & risk → 2050s · high:** “And here’s the decision. Corn-soybean looks safe today, but it uses the most fertilizer and loses the most soil. Jump to the 2050s with three NASA climate models: hot days almost triple. We don’t hide that uncertainty. We show it.”
+6. **Tap 🌐, pick हिन्दी:** “And one more thing: it speaks the farmer’s language. One tap, and the whole site is in Hindi, Spanish, Swahili, or any of 130+ languages. Giri?”
 
-*Keep it moving. Talk while you click.*
+## Slide 5 · Giri → Atharv
+**Giri:**
+> Everything you just saw runs on NASA data: 35 years of daily NASA POWER weather, NEX-GDDP-CMIP6 climate projections, and satellites: MODIS, SMAP, NISAR and GPM. We even turn satellite pixels back into real numbers for one single field.
 
-1. **Map tab →** type “Champ” → pick **Champaign Co., IL**
-   > “It works for any field on Earth, but let’s open that same Champaign County field. You start typing, you pick it, and it pulls 35 years of NASA data for that exact spot.”
-2. **Field story → “Right now”**
-   > “Look at this season: the warmest 30 days on record for this field, and dry. So AgriHaven tells the farmer: drill your cover crop, don’t broadcast it.”
-3. **Scroll to Chapter 3**
-   > “And 2012. We never told the model about that drought. It found it by itself.”
-4. **Satellite lab**
-   > “Then we look from space. Crop greenness at its peak: NDVI 0.78, a healthy, dense canopy. Radar from NASA’s brand-new NISAR satellite. Soil moisture at three depths. Even the crop’s whole season, green-up to harvest.”
-5. **Compare & risk → click “2050s · high”**
-   > “And here’s the decision. Corn-soybean looks safe today, but it uses the most fertilizer and loses the most soil. Jump to the 2050s with three NASA climate models: hot days almost triple. We don’t hide that uncertainty. We show it.”
-6. **🌐 Languages (5 seconds, tap the globe):** "And one more thing: it speaks the farmer’s language. One tap, and the whole site is in Hindi, Spanish, Swahili, or any of 130+ languages."
+**Atharv:**
+> And we tested it. On its own, it finds the **2012 drought** and Illinois’s **soaking-wet 2019 spring**, when farmers had just two dry days to plant.
 
-## 05 · THE DATA (Giri, 2:35–3:05) · Slide 5
-
-> Everything you just saw comes from NASA: **35 years of daily NASA POWER weather**, **NEX-GDDP-CMIP6** climate projections, and satellites: **MODIS, SMAP, NISAR, GPM**. We even turn satellite pixels back into real numbers for one single field.
+## Slide 7 · Atharv → Harish → all four → Harish
+**Atharv:**
+> So who wins? Take one 500-acre farm in that same county. Switching to the rotation AgriHaven recommends saves about **$6,900 in fertilizer a year**, keeps **524 tonnes of topsoil** on the field, and stores **228 tonnes of CO₂** in the soil. The farmer saves money, the soil gets healthier, and it works for any field on Earth, free, even on a phone.
 >
-> And we tested it: on its own, it finds the **2012 drought** and Illinois’s **soaking-wet 2019 spring**, when farmers had just two dry days to plant.
+> Next, we want to check AgriHaven against real harvest records with extension agents, and add more crops and regions. Harish?
 
-## 06 · IMPACT (Atharv, 3:05–3:35) · Slide 7
+**Harish:**
+> So why us? All four of us have spent time in our grandparents’ villages, watching them farm. We saw how much depends on one guess about the weather, and how often that guess is now wrong. So we did the research, and we built the tool we wish they’d had. Because every farmer deserves to see what NASA sees.
 
-> So who wins? Take one 500-acre farm in that same county. Switching to the rotation AgriHaven recommends saves about **$6,900 in fertilizer a year**, keeps **524 tonnes of topsoil** on the field, and stores **228 tonnes of CO₂** in the soil.
->
-> The farmer saves money, the soil gets healthier, and it works for any field on Earth, free, even on a phone.
-
-## 07 · TEAM + NEXT (3:35–4:20) · Slide 7
-
-**Harish (why us):**
-> So why us? All four of us have spent time in our grandparents’ villages, watching them farm. We saw how much depends on one guess about the weather, and how often that guess is now wrong. So we did the research, and we built the tool we wish they’d had.
-
-**Giri (what’s next):**
-> Next, we want to check AgriHaven against real harvest records with extension agents, and add more crops and regions.
-
-**All four, together (slowly):**
+**All four, together, slowly:**
 > **From space to soil. From data to decisions.**
 
 **Harish:**
 > That’s Team AgriHaven. Thank you!
 
----
+## Slide 6 · Giri (only if a judge asks “How do you know it’s right?”)
+> We tested it. On its own, it finds the 2012 drought, its lowest corn score in 35 years, and the record-wet 2019 spring, with only two days dry enough to plant. It uses standard methods from FAO, USDA and IPCC, and it has 31 automated tests. And we’re honest about its limits: it’s a screening tool, not agronomic advice.
 
-## Tips for delivery
-
-- **The hook is short on purpose.** Raise your own hand on the question so the judges raise theirs, then pause after “paycheck”. Harish should know it by heart.
-- **The slogan comes from all four of you at once, then Harish closes with “That’s Team AgriHaven. Thank you!”** Practise the slogan together until you’re in sync. Slow, a small pause between the two halves, then stop.
-- **Talk to the judges, not the screen.** Dhishant: glance at the screen, then face the room.
-- **Pre-load Champaign** in the demo tab 5 minutes before you go up, so it loads instantly.
-- **If the Wi-Fi fails:** press play on the video on slide 4 (`media/agrihaven-demo-walkthrough.mp4`) and say the same lines over it. Its on-screen captions match the script.
-- **Clicker path:** 1 → 2 → 3 → 4 (switch to the live app) → 5 → 7. Slide 6 (validity) is a backup for judge questions.
-- **If you run long:** cut demo step 3 (2012) first, then the last sentence of Impact.
-
-## Likely judge questions
-
-| Question | Who | Answer |
-|---|---|---|
-| How do you know it’s right? | Giri | It finds the 2012 drought and the 2019 wet spring without being tuned to them, uses standard science methods (FAO, USDA), and has 31 automated tests. |
-| Why would a farmer trust it? | Atharv | It explains every score in plain language and shows its data sources. It helps a farmer think and talk to their agronomist; it doesn’t replace them. |
-| What about uncertainty? | Dhishant | We run three separate NASA climate models and show the range, so the uncertainty is visible, not hidden. |
-| Does it work outside Illinois? | Dhishant | Any field on Earth. Detailed 2050s projections are ready for seven farming regions on four continents. |
-| What was hardest? | Harish | Turning satellite colours back into real numbers, and making all of it simple enough for a farmer. |
+## Tips
+- Pre-load Champaign in a browser tab, and make sure the site is in English.
+- If the Wi-Fi fails, play the video on slide 4 and say the same lines; stop it when your lines are done.
+- If you run long, cut demo step 3 (2012) first, then the 🌐 line.
