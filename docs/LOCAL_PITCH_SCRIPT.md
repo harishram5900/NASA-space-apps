@@ -48,7 +48,7 @@ Harish opens the pitch and is the last voice before the team slogan.
 4. Compare & risk → 2050s · high: “And the decision. Corn-soybean looks safe today, but it uses the most fertilizer and loses the most soil. In the 2050s, hot days almost triple. We don’t hide that uncertainty. We show it.”
 5. Tap 🌐, pick हिन्दी: “And it speaks 130+ languages, in one tap. Giri?”
 
-**8 · Giri:** Everything you saw runs on NASA data: 35 years of daily NASA POWER weather; NEX-GDDP-CMIP6 projections from three climate models for the 2050s; and satellites: MODIS, SMAP, NASA-ISRO’s NISAR radar, OPERA, GPM rainfall, CERES UV and SEDAC croplands. Soil comes from SoilGrids.
+**8 · Giri:** Everything you saw runs on NASA data. NASA POWER gives us 35 years of daily weather for the field. NEX-GDDP-CMIP6 gives the 2050s climate from three climate models. MODIS measures crop greenness and ground heat, SMAP measures soil moisture, NISAR and OPERA use radar to see the field through clouds, GPM tracks rainfall, CERES gives the UV index, and SEDAC maps where cropland is. SoilGrids tells us what’s in the soil.
 
 **9 · Atharv:** And we turn those satellite pixels into real numbers for one field: near-infrared and heat index, radar backscatter, NDVI greenness, a thermal raster, soil moisture at three depths, the crop cycle, UV index, and the nutrients the soil supplies.
 

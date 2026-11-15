@@ -42,7 +42,7 @@ Harish opens the pitch and is the last voice before the team slogan.
 
 ## Slide 5 · Giri → Atharv
 **Giri:**
-> Everything you just saw runs on NASA data: 35 years of daily NASA POWER weather, NEX-GDDP-CMIP6 climate projections, and satellites: MODIS, SMAP, NISAR and GPM. We even turn satellite pixels back into real numbers for one single field.
+> Everything you saw runs on NASA data. NASA POWER gives us 35 years of daily weather for the field. NEX-GDDP-CMIP6 gives the 2050s climate from three climate models. MODIS measures crop greenness and ground heat, SMAP measures soil moisture, NISAR and OPERA use radar to see the field through clouds, GPM tracks rainfall, CERES gives the UV index, and SEDAC maps where cropland is. SoilGrids tells us what’s in the soil.
 
 **Atharv:**
 > And we tested it. On its own, it finds the **2012 drought** and Illinois’s **soaking-wet 2019 spring**, when farmers had just two dry days to plant.
