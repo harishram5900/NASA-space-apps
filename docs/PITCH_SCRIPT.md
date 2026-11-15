@@ -10,7 +10,7 @@
 | 04 | Demo | 1:08–2:35 | Dhishant | Slide 4 · live app (backup: the video on slide 4) |
 | 05 | The data | 2:35–3:05 | Giri | Slide 5 (slide 6 if asked how you know it's right) |
 | 06 | Impact | 3:05–3:35 | Atharv | Slide 7 |
-| 07 | Team + next | 3:35–4:20 | Harish → Giri → Harish → all four | Slide 7 |
+| 07 | Team + next | 3:35–4:20 | Harish → Giri → all four → Harish | Slide 7 |
 
 ---
 
@@ -76,18 +76,18 @@
 **Giri (what’s next):**
 > Next, we want to check AgriHaven against real harvest records with extension agents, and add more crops and regions.
 
-**Harish:**
-> Thank you. We’re AgriHaven.
-
 **All four, together (slowly):**
 > **From space to soil. From data to decisions.**
+
+**Harish:**
+> That’s Team AgriHaven. Thank you!
 
 ---
 
 ## Tips for delivery
 
 - **The hook is short on purpose.** Raise your own hand on the question so the judges raise theirs, then pause after “paycheck”. Harish should know it by heart.
-- **The slogan is the last thing the judges hear, from all four of you at once.** Practise it together until you’re in sync. Slow, a small pause between the two halves, then stop.
+- **The slogan comes from all four of you at once, then Harish closes with “That’s Team AgriHaven. Thank you!”** Practise the slogan together until you’re in sync. Slow, a small pause between the two halves, then stop.
 - **Talk to the judges, not the screen.** Dhishant: glance at the screen, then face the room.
 - **Pre-load Champaign** in the demo tab 5 minutes before you go up, so it loads instantly.
 - **If the Wi-Fi fails:** press play on the video on slide 4 (`media/agrihaven-demo-walkthrough.mp4`) and say the same lines over it. Its on-screen captions match the script.

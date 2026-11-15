@@ -19,7 +19,7 @@ Dhishant speaks only during the demo. Speaking time: Harish ~70 s, Atharv ~70 s,
 | 12 Farm numbers | 06 Impact | 3:20–3:37 | Atharv |
 | 13 Why us | 07 Team + next | 3:37–3:58 | Harish |
 | 14 What's next | 07 Team + next | 3:58–4:08 | Atharv |
-| 15 Close | 07 Team + next | 4:08–4:17 | Harish, then all four |
+| 15 Close | 07 Team + next | 4:08–4:17 | All four, then Harish |
 
 **1 · Harish:** Quick question: who here checked the weather today? *(raise your hand, wait)* **[click]** Now imagine betting your whole year’s paycheck on it.
 
@@ -54,8 +54,8 @@ Dhishant speaks only during the demo. Speaking time: Harish ~70 s, Atharv ~70 s,
 
 **14 · Atharv:** Next, we want to check AgriHaven against real harvest records with extension agents, bring in 30-metre field-level satellite data, and add more crops and regions.
 
-**15 · Harish:** Thank you. We’re AgriHaven.
-**All four, together, slowly:** From space to soil. From data to decisions.
+**15 · All four, together, slowly:** From space to soil. From data to decisions.
+**Harish:** That’s Team AgriHaven. Thank you!
 
 ## Tips
 - Slide 1 has one click: the “paycheck” line appears on Harish’s click.
