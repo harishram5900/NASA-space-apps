@@ -5,11 +5,11 @@
 | # | Rubric step | Time | Who | Screen |
 |---|---|---|---|---|
 | 01 | Hook | 0:00–0:20 | Harish | Slide 1 |
-| 02 | Problem | 0:20–0:45 | Giri | Slide 2 |
-| 03 | Solution | 0:45–1:05 | Harish → Atharv | Slide 3 |
-| 04 | Demo | 1:05–2:30 | Dhishant | Slide 4 · live app (backup: the video on slide 4) |
-| 05 | The data | 2:30–3:00 | Giri | Slide 5 (slide 6 if asked how you know it's right) |
-| 06 | Impact | 3:00–3:35 | Atharv | Slide 7 |
+| 02 | Problem | 0:20–0:50 | Giri | Slide 2 |
+| 03 | Solution | 0:50–1:08 | Harish → Atharv | Slide 3 |
+| 04 | Demo | 1:08–2:35 | Dhishant | Slide 4 · live app (backup: the video on slide 4) |
+| 05 | The data | 2:35–3:05 | Giri | Slide 5 (slide 6 if asked how you know it's right) |
+| 06 | Impact | 3:05–3:35 | Atharv | Slide 7 |
 | 07 | Team + next | 3:35–4:20 | Harish → Giri → Harish → all four | Slide 7 |
 
 ---
@@ -24,7 +24,7 @@
 >
 > We’re **Team AgriHaven**. I’m Harish, and this is **Giri, Atharv and Dhishant**. We used NASA data to help farmers make that bet.
 
-## 02 · PROBLEM (Giri, 0:20–0:45) · Slide 2
+## 02 · PROBLEM (Giri, 0:20–0:50) · Slide 2
 
 > Here’s the problem. Farmers decide what to plant using what has always worked: their family’s experience. But the climate that experience was built on is changing, and no farmer can see how much it has changed on their own field.
 >
@@ -32,7 +32,7 @@
 >
 > So farmers there are planning for a climate that no longer exists.
 
-## 03 · SOLUTION (Harish → Atharv, 0:45–1:05) · Slide 3
+## 03 · SOLUTION (Harish → Atharv, 0:50–1:08) · Slide 3
 
 **Harish (step forward, slowly):**
 > So here’s our one sentence: **AgriHaven lets any farmer test-drive a crop rotation on NASA data, today and in the 2050s, before they plant it.**
@@ -40,7 +40,7 @@
 **Atharv:**
 > Pick a field, and we replay 35 real years of NASA weather on ten crops, then rank rotations by risk, soil health and cost, in plain English. Dhishant?
 
-## 04 · DEMO (Dhishant, 1:05–2:30) · Slide 4, then the live app
+## 04 · DEMO (Dhishant, 1:08–2:35) · Slide 4, then the live app
 
 *Keep it moving. Talk while you click.*
 
@@ -56,13 +56,13 @@
    > “And here’s the decision. Corn-soybean looks safe today, but it uses the most fertilizer and loses the most soil. Jump to the 2050s with three NASA climate models: hot days almost triple. We don’t hide that uncertainty. We show it.”
 6. **🌐 Languages (5 seconds, tap the globe):** "And one more thing: it speaks the farmer’s language. One tap, and the whole site is in Hindi, Spanish, Swahili, or any of 130+ languages."
 
-## 05 · THE DATA (Giri, 2:30–3:00) · Slide 5
+## 05 · THE DATA (Giri, 2:35–3:05) · Slide 5
 
 > Everything you just saw comes from NASA: **35 years of daily NASA POWER weather**, **NEX-GDDP-CMIP6** climate projections, and satellites: **MODIS, SMAP, NISAR, GPM**. We even turn satellite pixels back into real numbers for one single field.
 >
 > And we tested it: on its own, it finds the **2012 drought** and Illinois’s **soaking-wet 2019 spring**, when farmers had just two dry days to plant.
 
-## 06 · IMPACT (Atharv, 3:00–3:35) · Slide 7
+## 06 · IMPACT (Atharv, 3:05–3:35) · Slide 7
 
 > So who wins? Take one 500-acre farm in that same county. Switching to the rotation AgriHaven recommends saves about **$6,900 in fertilizer a year**, keeps **524 tonnes of topsoil** on the field, and stores **228 tonnes of CO₂** in the soil.
 >
