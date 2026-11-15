@@ -18,7 +18,7 @@ Harish opens the pitch and is the last voice before the team slogan.
 > Quick question: who here checked the weather today? *(raise your hand, pause)*
 > Now imagine betting your whole year’s paycheck on it. *(beat)*
 > That’s what every farmer does, every spring. And the weather they learned from is changing.
-> We’re **Team AgriHaven**, four high schoolers. I’m Harish, and this is **Giri, Atharv and Dhishant**. We used NASA data to help farmers make that bet.
+> I’m Harish, and this is **Giri, Atharv and Dhishant**. We’re **Team AgriHaven**, four high school students who used NASA data to help farmers make that bet.
 
 ## Slide 2 · Giri
 > Here’s the problem. Farmers decide what to plant using what has always worked: their family’s experience. But the climate that experience was built on is changing, and no farmer can see how much it has changed on their own field.
