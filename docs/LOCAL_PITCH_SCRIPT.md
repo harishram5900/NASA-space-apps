@@ -24,16 +24,16 @@ Target 4:40 (20-second buffer). Slides are tagged with the judges' rubric: 01 Ho
 
 **2 · Harish:** That’s what every farmer does, every spring. And the weather they learned from is changing. We’re Team AgriHaven. I’m Harish, and this is Giri, Atharv and Dhishant. We used NASA data to help farmers make that bet.
 
-**3 · Giri:** Farmers aren’t careless. They plan with the best information they have: their family’s experience. But NASA’s data shows that experience has quietly gone out of date. In Champaign County, the growing season now gets 148 more degree-days of heat than in the ’90s, and the frost-free season is 12 days longer.
+**3 · Giri:** Farmers aren’t careless. They plan with the best information they have: their family’s experience. But NASA’s data shows that experience has quietly gone out of date. Take one real place: Champaign County, about two and a half hours south of Chicago, right in the middle of Illinois corn country. Since the ’90s, its growing season has gained 148 degree-days of heat, and the frost-free season is 12 days longer.
 
-**4 · Giri:** And when it goes wrong, it goes badly wrong. In 2012, one hot, dry summer, 53 days above 32 degrees, took Illinois corn from 157 bushels an acre to 105. A third of the harvest, gone in one season.
+**4 · Giri:** And when it goes wrong, it goes badly wrong. In 2012 in Illinois, one hot, dry summer, 53 days above 32 degrees, took Illinois corn from 157 bushels an acre to 105. A third of the harvest, gone in one season.
 
 **5 · Atharv:** So here’s our one sentence: AgriHaven lets any farmer test-drive a crop rotation on NASA data, today and in the 2050s, before they plant it.
 
 **6 · Atharv:** Three steps. Pick any field on Earth. See how its climate has really shifted: 13 indicators, each tested for a real trend. Then compare rotations across ten crops, ranked by risk, soil health and cost, in plain English. Dhishant?
 
 **7 · Dhishant (live site; the video on this slide is the Wi-Fi backup):**
-1. Map, type “Champ”, pick Champaign: “Any field on Earth. You start typing, you pick it, and it pulls 35 years of NASA data for that exact spot.”
+1. Map, type “Champ”, pick Champaign: “It works for any field on Earth, but let’s open that same Champaign County field. You start typing, you pick it, and it pulls 35 years of NASA data for that exact spot.”
 2. Right now: “Look at this season: the warmest 30 days on record for this field, and dry. So AgriHaven tells the farmer: drill your cover crop, don’t broadcast it.”
 3. Chapter 3: “And 2012. We never told the model about that drought. It found it by itself.”
 4. Satellite lab: “Then we look from space. Crop greenness at its peak: NDVI 0.78, a healthy, dense canopy. Radar from NASA’s brand-new NISAR satellite. Soil moisture at three depths. Even the crop’s whole season, green-up to harvest.”
@@ -46,9 +46,9 @@ Target 4:40 (20-second buffer). Slides are tagged with the judges' rubric: 01 Ho
 
 **10 · Giri:** Then we tested it. Without being told, it finds the 2012 drought, its lowest corn score in 35 years, and Illinois’s soaking-wet 2019 spring, when farmers had just two dry days to plant.
 
-**11 · Atharv:** So who wins? Here’s the decision for Champaign. Corn-soybean is the safest choice today, but it uses the most fertilizer, loses the most soil, and falls furthest by the 2050s. Add a rye cover crop, and most of that risk goes away.
+**11 · Atharv:** So who wins? Here’s the decision for that Champaign County field. Corn-soybean is the safest choice today, but it uses the most fertilizer, loses the most soil, and falls furthest by the 2050s. Add a rye cover crop, and most of that risk goes away.
 
-**12 · Atharv:** For one 500-acre farm, the recommended rotation saves about $6,900 in fertilizer a year, keeps 524 tonnes of topsoil on the field, about 40 truckloads, and stores 228 tonnes of CO₂ in the soil, like taking 50 cars off the road for a year. And it’s free, for any field on Earth, even on a phone.
+**12 · Atharv:** For one 500-acre farm in that county, the recommended rotation saves about $6,900 in fertilizer a year, keeps 524 tonnes of topsoil on the field, about 40 truckloads, and stores 228 tonnes of CO₂ in the soil, like taking 50 cars off the road for a year. And it’s free, for any field on Earth, even on a phone.
 
 **13 · Harish:** So why us? All four of us have spent time in our grandparents’ villages, watching them farm. We saw how much depends on one guess about the weather, and how often that guess is now wrong. So we did the research, and we built the tool we wish they’d had.
 

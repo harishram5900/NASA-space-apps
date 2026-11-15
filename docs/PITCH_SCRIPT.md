@@ -28,7 +28,7 @@
 
 > Farmers aren’t careless. They plan with the best information they have: their family’s experience. But NASA’s data shows that experience has quietly gone out of date.
 >
-> In Champaign County, the growing season now gets **148 more degree-days of heat** than in the ’90s, and the frost-free season is **12 days longer**. And when it goes wrong, it goes badly wrong: in **2012**, one hot, dry summer cut Illinois corn by **about a third**.
+> Take one real place: Champaign County, about two and a half hours south of Chicago, right in the middle of Illinois corn country. Since the ’90s, its growing season has gained **148 degree-days of heat**, and the frost-free season is **12 days longer**. And when it goes wrong, it goes badly wrong: in **2012**, one hot, dry summer cut Illinois corn by **about a third**.
 
 ## 03 · SOLUTION (Atharv, 0:45–1:05) · Slide 3
 
@@ -41,7 +41,7 @@
 *Keep it moving. Talk while you click.*
 
 1. **Map tab →** type “Champ” → pick **Champaign Co., IL**
-   > “Any field on Earth. You start typing, you pick it, and it pulls 35 years of NASA data for that exact spot.”
+   > “It works for any field on Earth, but let’s open that same Champaign County field. You start typing, you pick it, and it pulls 35 years of NASA data for that exact spot.”
 2. **Field story → “Right now”**
    > “Look at this season: the warmest 30 days on record for this field, and dry. So AgriHaven tells the farmer: drill your cover crop, don’t broadcast it.”
 3. **Scroll to Chapter 3**
@@ -60,7 +60,7 @@
 
 ## 06 · IMPACT (Atharv, 3:00–3:35) · Slide 7
 
-> So who wins? Take one 500-acre farm. Switching to the rotation AgriHaven recommends saves about **$6,900 in fertilizer a year**, keeps **524 tonnes of topsoil** on the field, and stores **228 tonnes of CO₂** in the soil.
+> So who wins? Take one 500-acre farm in that same county. Switching to the rotation AgriHaven recommends saves about **$6,900 in fertilizer a year**, keeps **524 tonnes of topsoil** on the field, and stores **228 tonnes of CO₂** in the soil.
 >
 > The farmer saves money, the soil gets healthier, and it works for any field on Earth, free, even on a phone.
 
