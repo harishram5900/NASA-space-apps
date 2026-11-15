@@ -24,9 +24,9 @@ Target 4:40 (20-second buffer). Slides are tagged with the judges' rubric: 01 Ho
 
 **2 · Harish:** That’s what every farmer does, every spring. And the weather they learned from is changing. We’re Team AgriHaven. I’m Harish, and this is Giri, Atharv and Dhishant. We used NASA data to help farmers make that bet.
 
-**3 · Giri:** Farmers aren’t careless. They plan with the best information they have: their family’s experience. But NASA’s data shows that experience has quietly gone out of date. Take one real place: Champaign County, about two and a half hours south of Chicago, right in the middle of Illinois corn country. Since the ’90s, its growing season has gained 148 degree-days of heat, and the frost-free season is 12 days longer.
+**3 · Giri:** Here’s the problem. Farmers decide what to plant using what has always worked: their family’s experience. But the climate that experience was built on is changing, and no farmer can see how much it has changed on their own field. So we checked with NASA data. Take Champaign County, in the heart of Illinois corn country, about two and a half hours south of here. Since the ’90s, its growing season has gained 148 degree-days of heat, and its frost-free season is 12 days longer. Farmers there are planning for a climate that no longer exists.
 
-**4 · Giri:** And when it goes wrong, it goes badly wrong. In 2012, one hot, dry summer, with 53 days above 32 degrees in that county, took Illinois corn from 157 bushels an acre to 105. A third of the harvest, gone in one season.
+**4 · Giri:** And when it goes wrong, it goes badly wrong. In 2012, one hot, dry summer, with 53 days above 32 degrees in Champaign County, took Illinois corn from 157 bushels an acre to 105. A third of the harvest, gone in one season.
 
 **5 · Atharv:** So here’s our one sentence: AgriHaven lets any farmer test-drive a crop rotation on NASA data, today and in the 2050s, before they plant it.
 

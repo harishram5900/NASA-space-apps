@@ -26,9 +26,11 @@
 
 ## 02 · PROBLEM (Giri, 0:20–0:45) · Slide 2
 
-> Farmers aren’t careless. They plan with the best information they have: their family’s experience. But NASA’s data shows that experience has quietly gone out of date.
+> Here’s the problem. Farmers decide what to plant using what has always worked: their family’s experience. But the climate that experience was built on is changing, and no farmer can see how much it has changed on their own field.
 >
-> Take one real place: Champaign County, about two and a half hours south of Chicago, right in the middle of Illinois corn country. Since the ’90s, its growing season has gained **148 degree-days of heat**, and the frost-free season is **12 days longer**. And when it goes wrong, it goes badly wrong: in **2012**, one hot, dry summer cut Illinois corn by **about a third**.
+> So we checked with NASA data. Take Champaign County, in the heart of Illinois corn country, about two and a half hours south of here. Since the ’90s, its growing season has gained **148 degree-days of heat**, and its frost-free season is **12 days longer**. And when it goes wrong, it goes badly wrong: in **2012**, one hot, dry summer cut Illinois corn by **about a third**.
+>
+> So farmers there are planning for a climate that no longer exists.
 
 ## 03 · SOLUTION (Atharv, 0:45–1:05) · Slide 3
 
